@@ -105,83 +105,212 @@ class Doctor extends User {
     
     
     // Add this function in your Doctor.php class
-public function searchPatient($conn, $patientName, $dateOfBirth = null, $healthID = null) {
-    try {
-        // Building query dynamically based on the input provided
-        $sql = "SELECT p.patientID, p.healthID, p.dateOfBirth, u.name 
-                FROM patient p 
-                INNER JOIN user u ON p.patientID = u.userID 
-                WHERE u.name LIKE :patientName";
-        
-        // Add dateOfBirth if provided
-        if (!empty($dateOfBirth)) {
-            $sql .= " AND p.dateOfBirth = :dateOfBirth";
-        }
-        
-        // Add healthID if provided
-        if (!empty($healthID)) {
-            $sql .= " AND p.healthID = :healthID";
-        }
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bindValue(':patientName', $patientName, PDO::PARAM_STR);
-
-        if (!empty($dateOfBirth)) {
-            $stmt->bindValue(':dateOfBirth', $dateOfBirth, PDO::PARAM_STR);
-        }
-        
-        if (!empty($healthID)) {
-            $stmt->bindValue(':healthID', $healthID, PDO::PARAM_STR);
-        }
-        
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC); // Return only one row as we are searching for a single patient
-
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-        return false;
-    }
-}
-
-    // Prescribe an exam to a patient
-    public function prescribeExam($conn, $patientID, $doctorID, $examCategories) {
+    public function searchPatient($conn, $patientName, $dateOfBirth = null, $healthID = null) {
         try {
-            foreach ($examCategories as $examType => $examItems) {
-                // Concatenate the subcategories (examItems) into a single string
-                $examItem = implode(', ', $examItems);
-    
-                // Insert a single row with the main category and the concatenated subcategories
-                $stmt = $conn->prepare("INSERT INTO exam (examType, examItem, examDate, status, patientID, doctorID) VALUES (:examType, :examItem, CURDATE(), 'Pending', :patientID, :doctorID)");
-                $stmt->bindParam(':examType', $examType);
-                $stmt->bindParam(':examItem', $examItem);
-                $stmt->bindParam(':patientID', $patientID);
-                $stmt->bindParam(':doctorID', $doctorID);
-    
-                if (!$stmt->execute()) {
-                    return false; // Return false if the insertion fails
-                }
+            // Building query dynamically based on the input provided
+            $sql = "SELECT p.patientID, p.healthID, p.dateOfBirth, u.name 
+                    FROM patient p 
+                    INNER JOIN user u ON p.patientID = u.userID 
+                    WHERE u.name LIKE :patientName";
+            
+            // Add dateOfBirth if provided
+            if (!empty($dateOfBirth)) {
+                $sql .= " AND p.dateOfBirth = :dateOfBirth";
             }
-            return true; // Return true if all insertions are successful
+            
+            // Add healthID if provided
+            if (!empty($healthID)) {
+                $sql .= " AND p.healthID = :healthID";
+            }
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(':patientName', $patientName, PDO::PARAM_STR);
+
+            if (!empty($dateOfBirth)) {
+                $stmt->bindValue(':dateOfBirth', $dateOfBirth, PDO::PARAM_STR);
+            }
+            
+            if (!empty($healthID)) {
+                $stmt->bindValue(':healthID', $healthID, PDO::PARAM_STR);
+            }
+            
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC); // Return only one row as we are searching for a single patient
+
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
             return false;
         }
     }
+
+    //to retreive exam ID's
+    public function getExamIDs($conn) {
+        try {
+            $sql = "SELECT examID, examName FROM exam";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute();
+            
+            $examIDs = [];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $examIDs[$row['examName']] = $row['examID'];
+            }
+            
+            return $examIDs;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
+        }
+    }
+    
+    //To retrieve Blood exam_itemIDs
+    public function getBloodTestItemIDs($conn, $bloodTestExamID) {
+        try {
+            $sql = "SELECT itemID, itemName FROM exam_item WHERE examID = :bloodTestExamID";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(':bloodTestExamID', $bloodTestExamID, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $bloodTestItems = [];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $bloodTestItems[$row['itemName']] = $row['itemID'];
+            }
+            
+            return $bloodTestItems;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
+        }
+    }
+
+        // Method to get the name of an exam by its ID
+        public function getExamNameById($conn, $examID) {
+            try {
+                $stmt = $conn->prepare("SELECT examName FROM exam WHERE examID = :examID");
+                $stmt->bindParam(':examID', $examID, PDO::PARAM_INT);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                return $result['examName'] ?? null;
+            } catch (PDOException $e) {
+                echo "Error: " . $e->getMessage();
+                return null;
+            }
+        }
+    
+        // Method to get the name of an exam item by its ID
+        public function getItemNameById($conn, $itemID) {
+            try {
+                $stmt = $conn->prepare("SELECT itemName FROM exam_item WHERE itemID = :itemID");
+                $stmt->bindParam(':itemID', $itemID, PDO::PARAM_INT);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                return $result['itemName'] ?? null;
+            } catch (PDOException $e) {
+                echo "Error: " . $e->getMessage();
+                return null;
+            }
+        }
+    
+
+        public function prescribeExam($conn, $patientID, $doctorID, $examCategories) { 
+            try {
+                foreach ($examCategories as $examID => $itemIDs) {
+                    if ($examID != 1) {
+                        // If examID is 1, insert the main exam with NULL for itemID
+                        $stmt = $conn->prepare("INSERT INTO prescribed_exam (patientID, doctorID, examID, itemID, prescriptionDate, status) VALUES (:patientID, :doctorID, :examID, NULL, CURDATE(), 'Pending')");
+                        $stmt->bindParam(':patientID', $patientID);
+                        $stmt->bindParam(':doctorID', $doctorID);
+                        $stmt->bindParam(':examID', $examID);
+                        $stmt->execute();
+                    } else {
+                        // For exams where examID is not 1, insert each selected item as a row
+                        foreach ($itemIDs as $itemID) {
+                            $stmt = $conn->prepare("INSERT INTO prescribed_exam (patientID, doctorID, examID, itemID, prescriptionDate, status) VALUES (:patientID, :doctorID, :examID, :itemID, CURDATE(), 'Pending')");
+                            $stmt->bindParam(':patientID', $patientID);
+                            $stmt->bindParam(':doctorID', $doctorID);
+                            $stmt->bindParam(':examID', $examID);
+                            $stmt->bindParam(':itemID', $itemID);
+                            $stmt->execute();
+                        }
+                    }
+                }
+                return true;
+            } catch (PDOException $e) {
+                echo "Error: " . $e->getMessage();
+                return false;
+            }
+        }
+        
+    
+    
     
     // Check exam results for a patient
-    public function checkExamResults($conn, $patientID, $examType) {
+    public function searchExamResults($conn, $patientName, $prescriptionDate = null, $selectedExams = [], $isAbnormal = false) {
         try {
-            $sql = "SELECT * FROM ExamResults WHERE patientID = :patientID AND examType = :examType";
+            // Base SQL query
+            $sql = "SELECT u.name AS patientName, e.examName AS examType, ei.itemName AS examItem, 
+                           pe.prescriptionDate, pe.result, pe.isAbnormal
+                    FROM prescribed_exam AS pe
+                    INNER JOIN patient AS p ON pe.patientID = p.patientID
+                    INNER JOIN user AS u ON p.patientID = u.userID
+                    LEFT JOIN exam AS e ON pe.examID = e.examID
+                    LEFT JOIN exam_item AS ei ON pe.itemID = ei.itemID
+                    WHERE u.name LIKE :patientName";
+    
+            // Optional filter for prescription date
+            if ($prescriptionDate) {
+                $sql .= " AND pe.prescriptionDate = :prescriptionDate";
+            }
+            // Optional filter for abnormal results
+            if ($isAbnormal) {
+                $sql .= " AND pe.isAbnormal = 1";
+            }
+    
+            // Exam type and item filters, if any selected
+            if (!empty($selectedExams)) {
+                $examConditions = [];
+                foreach ($selectedExams as $index => $exam) {
+                    $examParam = ":examID{$index}";
+    
+                    // Condition for exams without items
+                    if (empty($exam['itemIDs'])) {
+                        $examConditions[] = "(pe.examID = $examParam AND pe.itemID IS NULL)";
+                    } else {
+                        // Condition for exams with specific items
+                        $itemConditions = implode(", ", array_map(fn($id) => ":itemID{$index}_{$id}", $exam['itemIDs']));
+                        $examConditions[] = "(pe.examID = $examParam AND (pe.itemID IN ($itemConditions) OR pe.itemID IS NULL))";
+                    }
+                }
+                $sql .= " AND (" . implode(" OR ", $examConditions) . ")";
+            }
+    
+            // Prepare statement
             $stmt = $conn->prepare($sql);
-            $stmt->bindValue(':patientID', $patientID, PDO::PARAM_INT);
-            $stmt->bindValue(':examType', $examType, PDO::PARAM_STR);
+            $stmt->bindValue(':patientName', "%$patientName%", PDO::PARAM_STR);
+    
+            // Bind optional parameters
+            if ($prescriptionDate) {
+                $stmt->bindValue(':prescriptionDate', $prescriptionDate, PDO::PARAM_STR);
+            }
+    
+            // Bind exam type and item parameters
+            foreach ($selectedExams as $index => $exam) {
+                $stmt->bindValue(":examID{$index}", $exam['examID'], PDO::PARAM_INT);
+                foreach ($exam['itemIDs'] as $itemIndex => $itemID) {
+                    $stmt->bindValue(":itemID{$index}_{$itemID}", $itemID, PDO::PARAM_INT);
+                }
+            }
+    
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
-            return false;
+            return [];
         }
     }
+    
+    
+    
 
     // Set monitoring for a patient exam
     public function setMonitoring($conn, $patientID, $examType, $frequency, $duration) {

@@ -63,23 +63,89 @@ if ($action === 'searchPatient' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+/// Fetch exam IDs and blood test item IDs
+$examIDs = $doctor->getExamIDs($conn);
+$bloodTestItems = $doctor->getBloodTestItemIDs($conn, $examIDs['Blood Test'] ?? null);
+$prescriptionMessage = '';
+
+// Define main exams and their subcategories if any
+$examData = [
+    'Blood Test' => $bloodTestItems, // Using the fetched blood test items here
+    'Urine Test' => [],
+    'Ultrasound' => [],
+    'X-ray' => [],
+    'CT Scan' => [],
+    'ECG' => []
+];
+
+// Submit prescription handler
 if ($action === 'submitPrescription' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $patientID = $_POST['patientID'];
     $examCategories = $_POST['examCategories'] ?? [];
 
     if (!empty($examCategories)) {
+        $doctorID = $_SESSION['userID']; // Get the logged-in doctor's ID
+
         // Call the prescribeExam method from the Doctor class
         $result = $doctor->prescribeExam($conn, $patientID, $doctorID, $examCategories);
-        
+
         if ($result) {
-            echo "<script>alert('Exams prescribed successfully.'); window.location.href='doctor_dashboard.php?action=viewAccount';</script>";
+            // Retrieve the patient's name for the message
+            $patientName = htmlspecialchars($patientResult['name']);
+            // Format exam names and subcategories for display
+            $examSummary = [];
+            foreach ($examCategories as $examID => $itemIDs) {
+                $examName = $doctor->getExamNameById($conn, $examID); // Get exam name by ID
+                
+                // Check if only the main exam is selected or if there are subcategories
+                if (count($itemIDs) === 1 && $itemIDs[0] == $examID) {
+                    // Only the main exam is selected, no subcategories
+                    $examSummary[] = $examName;
+                } else {
+                    // If there are specific items, list them
+                    $itemNames = array_map(fn($id) => $id ? $doctor->getItemNameById($conn, $id) : '', $itemIDs);
+                    $itemNames = array_filter($itemNames); // Remove empty item names
+                    if (!empty($itemNames)) {
+                        $examSummary[] = "$examName: " . implode(', ', $itemNames);
+                    } else {
+                        $examSummary[] = $examName; // Only the main exam if no items
+                    }
+                }
+            }
+            $examDetails = implode(', ', $examSummary);
+            $prescriptionMessage = "<p style='color: green;'>Exams prescribed successfully for $patientName. Prescribed exams: $examDetails.</p>";
         } else {
-            echo "<script>alert('Failed to prescribe exams. Please try again.');</script>";
+            $prescriptionMessage = "<p style='color: red;'>Failed to prescribe exams. Please try again.</p>";
         }
     } else {
-        echo "<script>alert('No exams selected.');</script>";
+        $prescriptionMessage = "<p style='color: red;'>No exams selected.</p>";
     }
 }
+
+
+
+if ($action === 'executeSearchExamResults' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
+    $patientName = $_POST['patientName'];
+    $prescriptionDate = $_POST['prescriptionDate'] ?? null;
+    $isAbnormal = isset($_POST['isAbnormal']) ? true : false;
+
+    // Collect selected exam types and items
+    $selectedExams = [];
+    if (isset($_POST['examCategories'])) {
+        foreach ($_POST['examCategories'] as $examID => $itemIDs) {
+            $selectedExams[] = [
+                'examID' => $examID,
+                'itemIDs' => array_filter($itemIDs, fn($id) => $id !== $examID) // Filter out the main exam ID if no subcategory
+            ];
+        }
+    }
+
+    // Call search function with selected filters
+    $examResults = $doctor->searchExamResults($conn, $patientName, $prescriptionDate, $selectedExams, $isAbnormal);
+}
+
+
+
 
 if ($action === 'logout') {
     $doctor->logout();
@@ -99,7 +165,7 @@ if ($action === 'logout') {
         <button type="submit" name="action" value="viewAccount">View Account</button>
         <button type="submit" name="action" value="modifyAccount">Modify Account</button>
         <button type="submit" name="action" value="prescribeExam">Prescribe Exam</button>
-        <button type="submit" name="action" value="checkExamResults">Check Exam Results</button>
+        <button type="submit" name="action" value="searchExamResults">Check Exam Results</button>
         <button type="submit" name="action" value="setMonitoring">Set Monitoring</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
@@ -142,7 +208,7 @@ if ($action === 'logout') {
             <input type="submit" value="Change Password">
         </form>
 
-    <?php elseif ($action === 'prescribeExam' || !empty($patientResult)): ?>
+        <?php elseif ($action === 'prescribeExam'): ?>
         <h3>Search Patient</h3>
         <form method="POST" action="">
             <label for="patientName">Patient Name:</label>
@@ -159,94 +225,103 @@ if ($action === 'logout') {
         </form>
 
         <?php if ($patientResult): ?>
-    <h3>Prescribe Exams for Patient: <?php echo htmlspecialchars($patientResult['name']); ?></h3>
-    <form method="POST" action="">
-        <input type="hidden" name="patientID" value="<?php echo htmlspecialchars($patientResult['patientID']); ?>">
+            <h3>Prescribe Exams for Patient: <?php echo htmlspecialchars($patientResult['name']); ?></h3>
+            <form method="POST" action="">
+                <input type="hidden" name="patientID" value="<?php echo htmlspecialchars($patientResult['patientID']); ?>">
 
-        <!-- Blood Test -->
-        <input type="checkbox" id="BloodTest" name="examCategories[Blood Test][]" value="Blood Test" onchange="toggleSubCategories('BloodTestCategories')"> Blood Test<br>
-        <div id="BloodTestCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Routine Hematology"> Routine Hematology<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Coagulation"> Coagulation<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Routine Chemistry"> Routine Chemistry<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Renal Function"> Renal Function<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Liver Function"> Liver Function<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Pancreas Function"> Pancreas Function<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Endocrinology"> Endocrinology<br>
-            <input type="checkbox" name="examCategories[Blood Test][]" value="Tumor Markers"> Tumor Markers<br>
-        </div><br>
+                <?php foreach ($examData as $examName => $items): ?>
+                    <?php $examID = $examIDs[$examName] ?? null; ?>
+                    <?php if ($examID && $examName === "Blood Test" && !empty($items)): ?>
+                        <input type="checkbox" id="BloodTest" onchange="toggleSubCategories('BloodTestCategories')"> Blood Test<br>
+                        <div id="BloodTestCategories" style="display:none; margin-left: 20px;">
+                            <?php foreach ($items as $itemName => $itemID): ?>
+                                <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php elseif ($examID): ?>
+                        <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>"> <?php echo $examName; ?><br>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <input type="hidden" name="action" value="submitPrescription">
+                <input type="submit" value="Prescribe Exams">
+            </form>
+        <?php endif; ?>
 
-        <!-- Urine Test -->
-        <input type="checkbox" id="UrineTest" name="examCategories[Urine Test][]" value="Urine Test" onchange="toggleSubCategories('UrineTestCategories')"> Urine Test<br>
-        <div id="UrineTestCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Urinalysis"> Urinalysis<br>
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Urine Culture"> Urine Culture<br>
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Urine Protein Test"> Urine Protein Test<br>
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Urine Pregnancy Test"> Urine Pregnancy Test<br>
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Urine Drug Screening"> Urine Drug Screening<br>
-            <input type="checkbox" name="examCategories[Urine Test][]" value="Microalbumin Test"> Microalbumin Test<br>
-        </div><br>
 
-        <!-- Ultrasound -->
-        <input type="checkbox" id="Ultrasound" name="examCategories[Ultrasound][]" value="Ultrasound" onchange="toggleSubCategories('UltrasoundCategories')"> Ultrasound<br>
-        <div id="UltrasoundCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Abdominal Ultrasound"> Abdominal Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Pelvic Ultrasound"> Pelvic Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Obstetric Ultrasound"> Obstetric Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Thyroid Ultrasound"> Thyroid Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Echocardiogram"> Echocardiogram<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Doppler Ultrasound"> Doppler Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Breast Ultrasound"> Breast Ultrasound<br>
-            <input type="checkbox" name="examCategories[Ultrasound][]" value="Musculoskeletal Ultrasound"> Musculoskeletal Ultrasound<br>
-        </div><br>
+        <?php elseif ($action === 'searchExamResults'): ?>
+        <h3>Check Exam Results</h3>
+        <form method="POST" action="">
+            <label for="patientName">Patient Name:</label>
+            <input type="text" id="patientName" name="patientName" required><br><br>
+            <label for="prescriptionDate">Prescription Date (optional):</label>
+            <input type="date" id="prescriptionDate" name="prescriptionDate"><br><br>
+            <label>Select Exam Type:</label><br>
+        
+            <!-- Exam type checkboxes with subcategories -->
+            <?php foreach ($examData as $examName => $items): ?>
+                <?php $examID = $examIDs[$examName] ?? null; ?>
+                <?php if ($examID): ?>
+                    <!-- Main Exam Checkbox -->
+                    <input type="checkbox" id="<?php echo $examName; ?>" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>" <?php echo !empty($items) ? 'onchange="toggleSubCategories(\'' . $examName . 'Categories\')"' : ''; ?>>
+                    <?php echo $examName; ?><br>
 
-        <!-- X-ray -->
-        <input type="checkbox" id="Xray" name="examCategories[X-ray][]" value="X-ray" onchange="toggleSubCategories('XrayCategories')"> X-ray<br>
-        <div id="XrayCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[X-ray][]" value="Chest X-ray"> Chest X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Abdominal X-ray"> Abdominal X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Bone X-ray"> Bone X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Dental X-ray"> Dental X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Spinal X-ray"> Spinal X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Sinus X-ray"> Sinus X-ray<br>
-            <input type="checkbox" name="examCategories[X-ray][]" value="Mammogram"> Mammogram<br>
-        </div><br>
+                    <!-- Subcategory checkboxes if there are items -->
+                    <?php if (!empty($items)): ?>
+                        <div id="<?php echo $examName; ?>Categories" style="display:none; margin-left: 20px;">
+                            <?php foreach ($items as $itemName => $itemID): ?>
+                                <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endforeach; ?> <br>
 
-        <!-- CT Scan -->
-        <input type="checkbox" id="CTScan" name="examCategories[CT Scan][]" value="CT Scan" onchange="toggleSubCategories('CTScanCategories')"> CT Scan<br>
-        <div id="CTScanCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[CT Scan][]" value="CT Angiography"> CT Angiography<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="Head/Brain CT"> Head/Brain CT<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="Chest CT"> Chest CT<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="Abdominal and Pelvic CT"> Abdominal and Pelvic CT<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="Sinus CT"> Sinus CT<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="Spinal CT"> Spinal CT<br>
-            <input type="checkbox" name="examCategories[CT Scan][]" value="CT Colonography"> CT Colonography<br>
-        </div><br>
+            <label for="isAbnormal">Only Abnormal Results:</label>
+            <input type="checkbox" id="isAbnormal" name="isAbnormal" value="1"><br><br>
+            <input type="hidden" name="action" value="executeSearchExamResults">
+            <input type="submit" value="Search Results">
+        </form>
 
-        <!-- ECG -->
-        <input type="checkbox" id="ECG" name="examCategories[ECG][]" value="ECG" onchange="toggleSubCategories('ECGCategories')"> ECG<br>
-        <div id="ECGCategories" style="display:none; margin-left: 20px;">
-            <input type="checkbox" name="examCategories[ECG][]" value="Resting ECG"> Resting ECG<br>
-            <input type="checkbox" name="examCategories[ECG][]" value="Exercise (Stress) ECG"> Exercise (Stress) ECG<br>
-            <input type="checkbox" name="examCategories[ECG][]" value="Holter Monitor ECG"> Holter Monitor ECG<br>
-            <input type="checkbox" name="examCategories[ECG][]" value="Event Monitor ECG"> Event Monitor ECG<br>
-            <input type="checkbox" name="examCategories[ECG][]" value="12-Lead ECG"> 12-Lead ECG<br>
-            <input type="checkbox" name="examCategories[ECG][]" value="Ambulatory ECG"> Ambulatory ECG<br>
-        </div><br>
+        <?php elseif ($action === 'executeSearchExamResults'): ?>
+        <h3>Exam Results</h3>
+        <?php if (!empty($examResults)): ?>
+            <table border="1">
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Exam Type</th>
+                    <th>Exam Item</th>
+                    <th>Prescription Date</th>
+                    <th>Result</th>
+                    <th>Abnormal</th>
+                </tr>
+                <?php foreach ($examResults as $result): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($result['patientName']); ?></td>
+                        <td><?php echo htmlspecialchars($result['examType']); ?></td>
+                        <td><?php echo htmlspecialchars($result['examItem'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($result['prescriptionDate']); ?></td>
+                        <td><?php echo htmlspecialchars($result['result']); ?></td>
+                        <td><?php echo $result['isAbnormal'] ? 'Yes' : 'No'; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        <?php else: ?>
+            <p>No results found for the specified criteria.</p>
+        <?php endif; ?>
+    <?php endif; ?>
 
-        <input type="hidden" name="action" value="submitPrescription">
-        <input type="submit" value="Prescribe Exams">
-    </form>
-<?php endif; ?>
 
-<script>
-    function toggleSubCategories(categoryID) {
-        let category = document.getElementById(categoryID);
-        category.style.display = category.style.display === 'none' ? 'block' : 'none';
-    }
-</script>
-      
+    <script>
+        function toggleSubCategories(categoryID) {
+            let category = document.getElementById(categoryID);
+            category.style.display = category.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+
+    <?php if (!empty($prescriptionMessage)): ?>
+        <div id="prescriptionMessage">
+            <?php echo $prescriptionMessage; ?>
+        </div>
     <?php endif; ?>
 </body>
 </html>
