@@ -4,6 +4,7 @@ require_once('database.php');
 require_once('Admin.php');
 
 $admin = new Admin($_SESSION['userID'], "Admin Name", "admin@example.com", "1234567890", "hashed_password", "Administrator");
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 // Check if the admin is logged in
 if (!isset($_SESSION['userID']) || $_SESSION['userType'] !== 'Administrator') {
@@ -115,8 +116,28 @@ if (isset($_POST['action'])) {
             echo "<script>alert('No prescription ID provided for deletion.');</script>";
         }
     }    
+
+
+    // Initialize variables
+    $reportResults = [];
+    $selectedYear = date("Y");
+    $selectedMonth = date("m");
+
+
+    if ($action === 'generateReport' && $_SERVER['REQUEST_METHOD'] === 'POST'){
+        $selectedYear = $_POST['year'];
+        $selectedMonth = $_POST['month'];
+        $reportResults = $admin->generateReport($conn, $selectedYear, $selectedMonth);
+    }
     
 
+    $predictionReportResults = [];
+
+    // If the action is to generate the health prediction report
+    if ($action === 'generateHealthPredictionReport' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $selectedYear = $_POST['year'];
+        $predictionReportResults = $admin->generateHealthPredictionReport($conn, $selectedYear);
+    }
 
     if ($action === 'logout') {
         $admin->logout();
@@ -142,6 +163,8 @@ if (isset($_POST['action'])) {
         <button type="submit" name="action" value="createStaffForm">Create New Staff Account</button>
         <button type="submit" name="action" value="deleteAccountForm">Delete Account</button>
         <button type="submit" name="action" value="searchExams">Delete Exam results</button>
+        <button type="submit" name="action" value="report">Reports</button>
+        <button type="submit" name="action" value="predictionReport">Health Prediction Report</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
 
@@ -337,8 +360,106 @@ if (isset($_POST['action'])) {
 <?php else: ?>
     <p>No exams found for this patient.</p>
 <?php endif; ?>
-<?php endif; ?>
 
+<?php elseif ((isset($action) && $action === 'report')): ?>
+
+    <h2>Generate Monthly or Yearly Report</h2>
+
+    <!-- Report Form -->
+    <form method="POST" action="">
+    <label for="year">Year:</label>
+    <input type="number" id="year" name="year" value="<?php echo htmlspecialchars($selectedYear); ?>" required><br><br>
+
+    <label for="month">Month (optional for specific monthly report):</label>
+    <select id="month" name="month">
+        <option value="">-- Select Month --</option>
+        <?php for ($m = 1; $m <= 12; $m++): ?>
+            <option value="<?php echo $m; ?>">
+                <?php echo date("F", mktime(0, 0, 0, $m, 1)); ?>
+            </option>
+        <?php endfor; ?>
+    </select><br><br>
+
+    <input type="hidden" name="action" value="generateReport">
+    <input type="submit" value="Generate Report">
+        
+    </form>
+
+    <?php elseif ($action === 'generateReport' && !empty($reportResults)): ?>
+        
+        <h3>Testing Summary Report for <?php echo $selectedMonth ? htmlspecialchars(date("F Y", mktime(0, 0, 0, $selectedMonth, 1, $selectedYear))) : htmlspecialchars($selectedYear); ?></h3>
+    <table border="1">
+        <tr>
+            <th>Patient ID</th>
+            <th>Patient Name</th>
+            <th>Total Tests</th>
+            <th>Abnormal Tests</th>
+            <th>Abnormal Percentage</th>
+        </tr>
+        <?php foreach ($reportResults as $result): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($result['patientID']); ?></td>
+                <td><?php echo htmlspecialchars($result['patientName']); ?></td>
+                <td><?php echo htmlspecialchars($result['totalTests']); ?></td>
+                <td><?php echo htmlspecialchars($result['abnormalTests']); ?></td>
+                <td><?php echo htmlspecialchars(number_format($result['abnormalPercentage'], 2)) . '%'; ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+    <?php elseif ($action === 'generateReport' && empty($reportResults)): ?>
+    <p>No testing records found for the selected period.</p>
+
+
+    <?php elseif ((isset($action) && $action === 'predictionReport')): ?>
+        <h2>Generate Health Prediction Report</h2>
+
+        <!-- Form for generating health prediction report -->
+        <form method="POST" action="">
+            <label for="year">Select Year for Prediction Report:</label>
+            <input type="number" id="year" name="year" value="<?php echo date('Y'); ?>" required><br><br>
+
+            <input type="hidden" name="action" value="generateHealthPredictionReport">
+            <input type="submit" value="Generate Health Prediction Report">
+        </form>
+
+        <?php elseif ($action === 'generateHealthPredictionReport' && !empty($predictionReportResults)): ?>
+            <h3>Health Prediction Report for <?php echo htmlspecialchars($selectedYear); ?></h3>
+    <table border="1">
+        <tr>
+            <th>Patient ID</th>
+            <th>Patient Name</th>
+            <th>Exam Type</th>
+            <th>Total Abnormal Occurrences</th>
+            <th>Priority</th>
+            <th>Predicted Health Risk</th>
+        </tr>
+        <?php foreach ($predictionReportResults as $result): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($result['patientID']); ?></td>
+                <td><?php echo htmlspecialchars($result['patientName']); ?></td>
+                <td><?php echo htmlspecialchars($result['examName']); ?></td>
+                <td><?php echo htmlspecialchars($result['abnormalCount']); ?></td>
+                <td style="background-color: 
+                    <?php 
+                        if ($result['Priority'] === 'Low') {
+                            echo 'yellow';
+                        } elseif ($result['Priority'] === 'Medium') {
+                            echo 'orange';
+                        } elseif ($result['Priority'] === 'High') {
+                            echo 'red';
+                        } else {
+                            echo 'transparent';
+                        } 
+                    ?>;">
+                    <?php echo htmlspecialchars($result['Priority']); ?>
+                </td>
+                <td><?php echo htmlspecialchars($result['PredictedRisk']); ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php elseif ($action === 'generateHealthPredictionReport' && empty($predictionReportResults)): ?>
+    <p>No health prediction data found for the selected year.</p>
+<?php endif; ?>
 
 </body>
 </html>

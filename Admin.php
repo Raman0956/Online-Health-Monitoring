@@ -209,6 +209,104 @@ class Admin extends User {
         }
     }
     
+    public function generateReport($conn, $year, $month = null) {
+        try {
+            // Adjust query based on whether a month is provided
+            $sql = "
+                SELECT 
+                    u.userID AS patientID,
+                    u.name AS patientName,
+                    COUNT(pe.prescriptionID) AS totalTests,
+                    SUM(CASE WHEN pe.isAbnormal = 1 THEN 1 ELSE 0 END) AS abnormalTests,
+                    IF(COUNT(pe.prescriptionID) > 0, (SUM(CASE WHEN pe.isAbnormal = 1 THEN 1 ELSE 0 END) / COUNT(pe.prescriptionID)) * 100, 0) AS abnormalPercentage
+                FROM 
+                    prescribed_exam AS pe
+                INNER JOIN 
+                    patient AS p ON pe.patientID = p.patientID
+                INNER JOIN 
+                    user AS u ON p.patientID = u.userID
+                WHERE 
+                    YEAR(pe.prescriptionDate) = :year";
+            
+            // Add month condition if specified
+            if ($month) {
+                $sql .= " AND MONTH(pe.prescriptionDate) = :month";
+            }
+    
+            $sql .= "
+                GROUP BY 
+                    u.userID, u.name
+                ORDER BY 
+                    u.name ASC";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+    
+            if ($month) {
+                $stmt->bindParam(':month', $month, PDO::PARAM_INT);
+            }
+    
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error generating report: " . $e->getMessage();
+            return [];
+        }
+    }
+
+    public function generateHealthPredictionReport($conn, $year) {
+        try {
+            $sql = "
+                SELECT 
+                    u.userID AS patientID,
+                    u.name AS patientName,
+                    e.examName,
+                    COUNT(pe.isAbnormal) AS abnormalCount,
+                    CASE
+                        WHEN COUNT(pe.isAbnormal) = 2 THEN 'Low'
+                        WHEN COUNT(pe.isAbnormal) = 3 THEN 'Medium'
+                        WHEN COUNT(pe.isAbnormal) > 3 THEN 'High'
+                        ELSE 'None'
+                    END AS Priority,
+                    CASE
+                        WHEN e.examName = 'Blood Test' AND ei.itemName IN ('Routine Hematology', 'Coagulation') THEN 'Risk of Anemia or Clotting Disorders'
+                        WHEN e.examName = 'Blood Test' AND ei.itemName IN ('Liver Function') THEN 'Risk of Liver Diseases'
+                        WHEN e.examName = 'Blood Test' AND ei.itemName IN ('Renal Function') THEN 'Risk of Kidney Issues'
+                        WHEN e.examName = 'ECG' THEN 'Risk of Cardiovascular Issues'
+                        WHEN e.examName = 'CT Scan' THEN 'Risk of Tumors or Internal Injuries'
+                        ELSE 'Health Monitoring Needed - Check Patient Records'
+                    END AS PredictedRisk
+                FROM 
+                    prescribed_exam AS pe
+                INNER JOIN 
+                    patient AS p ON pe.patientID = p.patientID
+                INNER JOIN 
+                    user AS u ON p.patientID = u.userID
+                INNER JOIN 
+                    exam AS e ON pe.examID = e.examID
+                LEFT JOIN 
+                    exam_item AS ei ON pe.itemID = ei.itemID
+                WHERE 
+                    pe.isAbnormal = 1 
+                    AND YEAR(pe.prescriptionDate) = :year
+                GROUP BY 
+                    u.userID, u.name, e.examName
+                HAVING 
+                    abnormalCount >= 2
+                ORDER BY 
+                    Priority DESC, patientName ASC
+            ";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+            $stmt->execute();
+    
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error generating health prediction report: " . $e->getMessage();
+            return [];
+        }
+    }
+       
     
 
     public function logout() {
