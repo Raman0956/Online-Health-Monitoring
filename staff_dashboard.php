@@ -3,6 +3,15 @@ session_start();
 require_once('database.php');
 require_once('Staff.php');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+        require ("PHPMailer/PHPMailer.php");
+        require ("PHPMailer/SMTP.php");
+        require ("PHPMailer/Exception.php");
+
+
 if (!isset($_SESSION['userID']) || $_SESSION['userType'] !== 'Staff') {
     header("Location: login.php");
     exit();
@@ -45,23 +54,58 @@ if ($action === 'changePassword' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if ($action === 'searchExams1' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $patientName = $_POST['patientName'] ?? null;
-    $status = $_POST['status'] ?? null;
-    $examResults = $staff->getExamsByPatient($conn, $patientName, $status);
-}
 
 if ($action === 'getPendingExams') {
     $pendingExams = $staff->getPendingExams($conn);
 }
 
-if (($action === 'submitExamResult') && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $examID = $_POST['examID'];
+if ($action === 'submitExamResult' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
+    $prescriptionID = $_POST['prescriptionID'];
+    $result = $_POST['result'];
     $isAbnormal = isset($_POST['isAbnormal']) ? 1 : 0;
-    $success = $staff->modifyExamResult($conn, $examID, $isAbnormal);
-    
+    $success = $staff->modifyExamResult($conn, $prescriptionID, $result, $isAbnormal);
+
     if ($success) {
-        echo "<script>alert('Exam result updated successfully.');window.location.href='staff_dashboard.php?action=getPendingExams';</script>";
+       
+        // Check if monitored and abnormal
+        if ($isAbnormal) {
+            $monitoringData = $staff->getMonitoringData($conn, $prescriptionID);
+
+            if ($monitoringData) {
+                $doctorEmail = $monitoringData['doctorEmail'];
+                $patientName = $monitoringData['patientName'];
+                $examName = $monitoringData['examName'];
+                $itemName = $monitoringData['itemName'];
+                
+                // Initialize PHPMailer and send email
+                $mail = new PHPMailer(true);
+                try {
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'ramandeep0956@gmail.com';
+                    $mail->Password = 'srfmnynililswdfw';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                    $mail->Port = 465;
+
+                    $mail->setFrom('ramandeep0956@gmail.com', 'Clinic.com');
+                    $mail->addAddress($doctorEmail);
+
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Monitoring Alert - Abnormal Result';
+                    $mail->Body = "<h1>Monitoring Alert</h1>
+                                   <p>Alert for patient: <strong>$patientName</strong></p>
+                                   <p>Exam: <strong>$examName</strong></p>
+                                   <p>Item: <strong>$itemName</strong></p>
+                                   <p>This result has been flagged as abnormal. Please review the patient's record for further information.</p>";
+
+                    $mail->send();
+                    echo "<script>alert('Exam result updated successfully.');window.location.href='staff_dashboard.php?action=getPendingExams';</script>";
+                } catch (Exception $e) {
+                    echo '<script>alert("Email could not be sent. Error: ' . $mail->ErrorInfo . '");</script>';
+                }
+            }
+        }
     } else {
         echo "<script>alert('Failed to update exam result.');</script>";
     }
@@ -75,13 +119,14 @@ if ($action === 'searchExams' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $examResults = $staff->searchExamsByPatientDetails($conn, $patientName, $dateOfBirth, $healthID);
 }
 
-if ($action === 'editExamResult' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $examID = $_POST['examID'];
+if ($action === 'modifyExamResult' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $prescriptionID = $_POST['prescriptionID'];
+    $result = $_POST['result'];
     $isAbnormal = isset($_POST['isAbnormal']) ? 1 : 0;
-    $success = $staff->modifyExamResult($conn, $examID, $isAbnormal);
+
+    $success = $staff->modifyExamResult($conn, $prescriptionID, $result, $isAbnormal);
 
     if ($success) {
-        
         echo "<script>alert('Exam result updated successfully.'); window.location.href='staff_dashboard.php?action=searchExams';</script>";
     } else {
         echo "<script>alert('Failed to update exam result.');</script>";
@@ -119,6 +164,7 @@ if ($action === 'logout') {
         <p>Phone Number: <?php echo htmlspecialchars($staffInfo['phoneNumber']); ?></p>
         <p>Working ID: <?php echo htmlspecialchars($staffInfo['workingID']); ?></p>
     <?php endif; ?>
+    
 
     <?php if ($action === 'modifyAccount'): ?>
         <h3>Modify Account</h3>
@@ -152,42 +198,49 @@ if ($action === 'logout') {
     <?php endif; ?>
 
     <?php if ($action === 'getPendingExams' && !empty($pendingExams)): ?>
-    <h3>All Pending Exams</h3>
-    <table border="1">
-        <tr>
-            <th>Patient Name</th>
-            <th>Date of Birth</th>
-            <th>Health ID</th>
-            <th>Exam Type</th>
-            <th>Exam Item</th>
-            <th>Exam Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-        <?php foreach ($pendingExams as $exam): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($exam['patientName']); ?></td>
-                <td><?php echo htmlspecialchars($exam['dateOfBirth']); ?></td>
-                <td><?php echo htmlspecialchars($exam['healthID']); ?></td>
-                <td><?php echo htmlspecialchars($exam['examType']); ?></td>
-                <td><?php echo htmlspecialchars($exam['examItem']); ?></td>
-                <td><?php echo htmlspecialchars($exam['examDate']); ?></td>
-                <td><?php echo htmlspecialchars($exam['status']); ?></td>
-                <td>
-                    <form method="POST" action="">
-                        <input type="hidden" name="examID" value="<?php echo $exam['examID']; ?>">
-                        <input type="checkbox" name="isAbnormal"> Abnormal
-                        <input type="hidden" name="action" value="submitExamResult">
-                        <input type="submit" value="Submit Result">
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-<?php endif; ?>
+            <h3>All Pending Exams</h3>
+            <table border="1">
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Date of Birth</th>
+                    <th>Health ID</th>
+                    <th>Exam Type</th>
+                    <th>Exam Item</th>
+                    <th>Prescription Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                <?php foreach ($pendingExams as $exam): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($exam['patientName']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['dateOfBirth']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['healthID']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['examType']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['examItem']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['prescriptionDate']); ?></td>
+                        <td><?php echo htmlspecialchars($exam['status']); ?></td>
+                        <td>
+                            <form method="POST" action="">
+                                <input type="hidden" name="prescriptionID" value="<?php echo $exam['prescriptionID']; ?>">
+                                <label>
+                                    Result:
+                                    <input type="text" name="result" required>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="isAbnormal"> Abnormal
+                                </label>
+                                <input type="hidden" name="action" value="submitExamResult">
+                                <input type="submit" value="Submit Result">
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        <?php endif; ?>
 
 
-<?php if ($action === 'searchExams'): ?>
+
+    <?php if ($action === 'searchExams'): ?>  
     <h3>Search Exams by Patient</h3>
     <form method="POST" action="">
         <label for="patientName">Patient Name:</label>
@@ -198,75 +251,56 @@ if ($action === 'logout') {
 
         <label for="healthID">Health ID (optional):</label>
         <input type="text" id="healthID" name="healthID"><br><br>
-        
-        <label for="status">Status:</label>
-        <select id="status" name="status">
-            <option value="">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Completed">Completed</option>
-        </select><br><br>
-        
+
         <input type="hidden" name="action" value="searchExams">
         <input type="submit" value="Search">
     </form>
 
     <?php if (isset($examResults) && !empty($examResults)): ?>
-        <h3>
-            <?php 
-                if (!empty($_POST['patientName'])) {
-                    echo "Exam Results for Patient " . htmlspecialchars($_POST['patientName']);
-                } elseif (!empty($_POST['dateOfBirth'])) {
-                    echo "Exam Results for Date of Birth " . htmlspecialchars($_POST['dateOfBirth']);
-                } elseif (!empty($_POST['healthID']) ) {
-                    echo "Exam Results for HealthID " . htmlspecialchars($_POST['healthID']);
-                } else {
-                    echo "Exam Results for All Patients";
-                }
-            ?>
-        </h3>
-        <table border="1">
+    <h3>Exam Results for <?php echo htmlspecialchars($patientName ?? ""); ?></h3>
+    <table border="1">
+        <tr>
+            <th>Patient Name</th>
+            <th>Date of Birth</th>
+            <th>Health ID</th>
+            <th>Exam Type</th>
+            <th>Exam Item</th>
+            <th>Prescription Date</th>
+            <th>Status</th>
+            <th>Result</th>
+            <th>Abnormal</th>
+            <th>Actions</th>
+        </tr>
+        <?php foreach ($examResults as $exam): ?>
             <tr>
-                <th>Patient Name</th>
-                <th>Date of Birth</th>
-                <th>Health ID</th>
-                <th>Exam Type</th>
-                <th>Exam Item</th>
-                <th>Exam Date</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <td><?php echo htmlspecialchars($exam['patientName']); ?></td>
+                <td><?php echo htmlspecialchars($exam['dateOfBirth']); ?></td>
+                <td><?php echo htmlspecialchars($exam['healthID']); ?></td>
+                <td><?php echo htmlspecialchars($exam['examType']); ?></td>
+                <td><?php echo htmlspecialchars($exam['examItem'] ?? 'N/A'); ?></td>
+                <td><?php echo htmlspecialchars($exam['prescriptionDate']); ?></td>
+                <td><?php echo htmlspecialchars($exam['status']); ?></td>
+                <td>
+                    <form method="POST" action="">
+                        <input type="text" name="result" value="<?php echo htmlspecialchars($exam['result'] ?? ''); ?>" required>
+                </td>
+                <td>
+                    <input type="checkbox" name="isAbnormal" <?php echo (!empty($exam['isAbnormal']) && $exam['isAbnormal']) ? 'checked' : ''; ?>>
+                </td>
+                <td>
+                    <input type="hidden" name="prescriptionID" value="<?php echo htmlspecialchars($exam['prescriptionID']); ?>">
+                    <input type="hidden" name="action" value="modifyExamResult">
+                    <input type="submit" value="Modify">
+                    </form>
+                </td>
             </tr>
-            <?php foreach ($examResults as $exam): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($exam['patientName']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['dateOfBirth']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['healthID']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['examType']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['examItem']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['examDate']); ?></td>
-                    <td><?php echo htmlspecialchars($exam['status']); ?></td>
-                    <td>
-                        <form method="POST" action="">
-                        <input type="hidden" name="examID" value="<?php echo htmlspecialchars($exam['examID']); ?>">
-                            <label>
-                                <input type="checkbox" name="isAbnormal" <?php echo (!empty($exam['isAbnormal']) && $exam['isAbnormal']) ? 'checked' : ''; ?>>
-                                Abnormal
-                            </label>
-                            <?php if ($exam['status'] === 'Pending'): ?>
-                                <input type="hidden" name="action" value="submitExamResult">
-                                <input type="submit" value="Submit">
-                            <?php else: ?>
-                                <input type="hidden" name="action" value="editExamResult">
-                                <input type="submit" value="Edit">
-                            <?php endif; ?>
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
+        <?php endforeach; ?>
+    </table>
     <?php else: ?>
         <p>No exams found for this patient.</p>
     <?php endif; ?>
 <?php endif; ?>
+
 
 
 

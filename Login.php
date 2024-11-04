@@ -1,10 +1,9 @@
-<?php 
+<?php
 session_start();
 
 require_once('database.php');
 require_once('User.php');
 require_once('Patient.php');
-
 
 class Login {
     private $conn;
@@ -45,6 +44,15 @@ class Login {
                 $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($userData && password_verify($password, $userData['password'])) {
+                    // Check if the user is a Patient and if the account is approved
+                    if ($userData['userType'] === 'Patient') {
+                        $approvalStatus = $this->checkPatientApprovalStatus($userData['userID']);
+                        if (!$approvalStatus) {
+                            echo "<script>alert('Your account is pending approval.');</script>";
+                            return;
+                        }
+                    }
+
                     // Store userID and userType in session variables
                     $_SESSION['userID'] = $userData['userID'];
                     $_SESSION['userType'] = $userData['userType'];
@@ -59,6 +67,31 @@ class Login {
             }
         }
     }
+
+    private function checkPatientApprovalStatus($userID) {
+        try {
+            $sql = "SELECT isApproved FROM Patient WHERE patientID = :userID";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':userID', $userID, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            // Debugging: Check approval status retrieved from the database
+            echo "<script>console.log('Database isApproved:', " . json_encode($result['isApproved']) . ");</script>";
+    
+            if ($result && $result['isApproved'] == 1) {
+                $_SESSION['isApproved'] = true; // Ensure session variable is set to true
+                return true;
+            } else {
+                $_SESSION['isApproved'] = false;
+                return false;
+            }
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+    
 
     // Method to redirect user based on their user type
     private function redirectUser($userType) {

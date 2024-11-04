@@ -144,6 +144,73 @@ class Admin extends User {
         }
     }
 
+
+    public function searchExamsByPatientDetails($conn, $patientName = null, $dateOfBirth = null, $healthID = null) {
+        try {
+            $query = "SELECT pe.prescriptionID, u.name AS patientName, p.dateOfBirth, p.healthID,  
+                 e.examName AS examType, ei.itemName AS examItem, 
+                 pe.prescriptionDate, pe.status, pe.result, pe.isAbnormal
+                FROM prescribed_exam AS pe
+                INNER JOIN patient AS p ON pe.patientID = p.patientID
+                INNER JOIN user AS u ON p.patientID = u.userID
+                LEFT JOIN exam AS e ON pe.examID = e.examID
+                LEFT JOIN exam_item AS ei ON pe.itemID = ei.itemID
+                WHERE 1=1";
+
+    
+            if (!empty($patientName)) {
+                $query .= " AND u.name LIKE :patientName";
+            }
+            if (!empty($dateOfBirth)) {
+                $query .= " AND p.dateOfBirth = :dateOfBirth";
+            }
+            if (!empty($healthID)) {
+                $query .= " AND p.healthID = :healthID";
+            }
+    
+            $stmt = $conn->prepare($query);
+    
+            if (!empty($patientName)) {
+                $stmt->bindValue(':patientName', '%' . $patientName . '%', PDO::PARAM_STR);
+            }
+            if (!empty($dateOfBirth)) {
+                $stmt->bindValue(':dateOfBirth', $dateOfBirth, PDO::PARAM_STR);
+            }
+            if (!empty($healthID)) {
+                $stmt->bindValue(':healthID', $healthID, PDO::PARAM_STR);
+            }
+    
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+    
+    public function deleteExam($conn, $prescriptionID) {
+        try {
+            // Delete the exam from prescribed_exam based on prescriptionID
+            $sql = "DELETE FROM prescribed_exam WHERE prescriptionID = :prescriptionID";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(':prescriptionID', $prescriptionID, PDO::PARAM_INT);
+            
+            // Execute delete operation
+            $stmt->execute();
+    
+            if ($stmt->rowCount() > 0) {
+                return "Exam record deleted successfully.";
+            } else {
+                return "No matching exam record found to delete.";
+            }
+        } catch (PDOException $e) {
+            echo "Error deleting exam record: " . $e->getMessage();
+            return null;
+        }
+    }
+    
+    
+
     public function logout() {
         session_start();
         session_unset();

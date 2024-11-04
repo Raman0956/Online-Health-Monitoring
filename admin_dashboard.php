@@ -97,6 +97,27 @@ if (isset($_POST['action'])) {
             echo "Error: " . $e->getMessage();
         }
     }
+
+
+    if ($action === 'searchExams' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $patientName = $_POST['patientName'] ?? null;
+        $dateOfBirth = $_POST['dateOfBirth'] ?? null;
+        $healthID = $_POST['healthID'] ?? null;
+        $examResults = $admin->searchExamsByPatientDetails($conn, $patientName, $dateOfBirth, $healthID);
+    }
+
+    if ($action === 'deleteExamResult' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
+        $prescriptionID = $_POST['prescriptionID'] ?? null;
+        if ($prescriptionID) {
+            $resultMessage = $admin->deleteExam($conn, $prescriptionID);
+            echo "<script>alert('$resultMessage'); window.location.href='admin_dashboard.php?action=searchExams';</script>";
+        } else {
+            echo "<script>alert('No prescription ID provided for deletion.');</script>";
+        }
+    }    
+    
+
+
     if ($action === 'logout') {
         $admin->logout();
     }
@@ -120,6 +141,7 @@ if (isset($_POST['action'])) {
         <button type="submit" name="action" value="createDoctorForm">Create New Doctor Account</button>
         <button type="submit" name="action" value="createStaffForm">Create New Staff Account</button>
         <button type="submit" name="action" value="deleteAccountForm">Delete Account</button>
+        <button type="submit" name="action" value="searchExams">Delete Exam results</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
 
@@ -260,6 +282,63 @@ if (isset($_POST['action'])) {
         <?php endif; ?>
    
     
-         
+    <?php if (isset($action) && $action === 'searchExams'): ?>  
+    <h3>Search Exams by Patient</h3>
+    <form method="POST" action="">
+        <label for="patientName">Patient Name:</label>
+        <input type="text" id="patientName" name="patientName"><br><br>
+
+        <label for="dateOfBirth">Date of Birth (optional):</label>
+        <input type="date" id="dateOfBirth" name="dateOfBirth"><br><br>
+
+        <label for="healthID">Health ID (optional):</label>
+        <input type="text" id="healthID" name="healthID"><br><br>
+
+        <input type="hidden" name="action" value="searchExams">
+        <input type="submit" value="Search">
+    </form>
+
+    <?php if (isset($examResults) && !empty($examResults)): ?>
+    <h3>Exam Results for <?php echo htmlspecialchars($patientName ?? ""); ?></h3>
+    <table border="1">
+        <tr>
+            <th>Patient Name</th>
+            <th>Date of Birth</th>
+            <th>Health ID</th>
+            <th>Exam Type</th>
+            <th>Exam Item</th>
+            <th>Prescription Date</th>
+            <th>Status</th>
+            <th>Result</th>
+            <th>Abnormal</th>
+            <th>Actions</th>
+        </tr>
+        <?php foreach ($examResults as $exam): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($exam['patientName']); ?></td>
+                <td><?php echo htmlspecialchars($exam['dateOfBirth']); ?></td>
+                <td><?php echo htmlspecialchars($exam['healthID']); ?></td>
+                <td><?php echo htmlspecialchars($exam['examType']); ?></td>
+                <td><?php echo htmlspecialchars($exam['examItem'] ?? 'N/A'); ?></td>
+                <td><?php echo htmlspecialchars($exam['prescriptionDate']); ?></td>
+                <td><?php echo htmlspecialchars($exam['status']); ?></td>
+                <td><?php echo htmlspecialchars($exam['result'] ?? ''); ?></td>
+                <td><?php echo (isset($exam['isAbnormal']) && $exam['isAbnormal']) ? 'Yes' : 'No'; ?></td>
+                <td>
+                    <form method="POST" action="">
+                        <input type="hidden" name="prescriptionID" value="<?php echo htmlspecialchars($exam['prescriptionID']); ?>">
+                        <input type="hidden" name="action" value="deleteExamResult">
+                        <input type="submit" value="Delete">
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php else: ?>
+    <p>No exams found for this patient.</p>
+<?php endif; ?>
+<?php endif; ?>
+
+
 </body>
 </html>
