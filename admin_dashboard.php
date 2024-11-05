@@ -152,12 +152,15 @@ if (isset($_POST['action'])) {
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
+    <div class="container">
     <h2>Admin Dashboard</h2>
     
     <!-- Dashboard Options Menu -->
-    <form method="POST" action="">
+    <div class="navbar">
+    <form method="POST" action="" class="navbar-form">
         <button type="submit" name="action" value="viewPendingRequests">View Pending Requests</button>
         <button type="submit" name="action" value="createDoctorForm">Create New Doctor Account</button>
         <button type="submit" name="action" value="createStaffForm">Create New Staff Account</button>
@@ -167,6 +170,7 @@ if (isset($_POST['action'])) {
         <button type="submit" name="action" value="predictionReport">Health Prediction Report</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
+    </div>
 
     <!-- Display Section based on Selection -->
     <?php if (isset($action) && $action === 'viewPendingRequests' && !empty($pendingPatients)): ?>
@@ -204,65 +208,81 @@ if (isset($_POST['action'])) {
     <?php if (isset($action) && $action === 'createDoctorForm'): ?>
         <h3>Create New Doctor Account</h3>
         <form method="POST" action="">
+        <div class="form-group">
             <label for="doctorName">Name:</label>
-            <input type="text" id="doctorName" name="doctorName" required><br><br>
-            
+            <input type="text" id="doctorName" name="doctorName" required>
+        </div>
+        <div class="form-group">    
             <label for="doctorEmail">Email:</label>
-            <input type="email" id="doctorEmail" name="doctorEmail" required><br><br>
-            
+            <input type="email" id="doctorEmail" name="doctorEmail" required>
+        </div>   
+        <div class="form-group">
             <label for="doctorPhoneNumber">Phone Number:</label>
-            <input type="text" id="doctorPhoneNumber" name="doctorPhoneNumber" required><br><br>
-            
+            <input type="text" id="doctorPhoneNumber" name="doctorPhoneNumber" required>
+        </div>
+        <div class="form-group">
             <label for="doctorPassword">Password:</label>
-            <input type="password" id="doctorPassword" name="doctorPassword" required><br><br>
-            
+            <input type="password" id="doctorPassword" name="doctorPassword" required>
+        </div>
+        <div class="form-group">
             <label for="doctorWorkingID">Working ID:</label>
-            <input type="text" id="doctorWorkingID" name="doctorWorkingID" required><br><br>
-            
+            <input type="text" id="doctorWorkingID" name="doctorWorkingID" required>
+        </div>
             <input type="hidden" name="action" value="createDoctor">
-            <input type="submit" value="Create Doctor">
+            <input type="submit" value="Create Doctor" style="display: block; margin: 0 auto;">
         </form>
     <?php endif; ?>
 
     <?php if (isset($action) && $action === 'createStaffForm'): ?>
         <h3>Create New Staff Account</h3>
         <form method="POST" action="">
+        
+        <div class="form-group">   
             <label for="staffName">Name:</label>
-            <input type="text" id="staffName" name="staffName" required><br><br>
-            
+            <input type="text" id="staffName" name="staffName" required>
+        </div>
+        <div class="form-group">    
             <label for="staffEmail">Email:</label>
-            <input type="email" id="staffEmail" name="staffEmail" required><br><br>
-            
+            <input type="email" id="staffEmail" name="staffEmail" required>
+        </div>
+        <div class="form-group">   
             <label for="staffPhoneNumber">Phone Number:</label>
-            <input type="text" id="staffPhoneNumber" name="staffPhoneNumber" required><br><br>
-            
+            <input type="text" id="staffPhoneNumber" name="staffPhoneNumber" required>
+        </div>
+        <div class="form-group">   
             <label for="staffPassword">Password:</label>
-            <input type="password" id="staffPassword" name="staffPassword" required><br><br>
-            
+            <input type="password" id="staffPassword" name="staffPassword" required>
+        </div>
+        <div class="form-group">   
             <label for="staffWorkingID">Working ID:</label>
-            <input type="text" id="staffWorkingID" name="staffWorkingID" required><br><br>
-            
+            <input type="text" id="staffWorkingID" name="staffWorkingID" required>
+        </div>
+          
             <input type="hidden" name="action" value="createStaff">
-            <input type="submit" value="Create Staff">
+            <input type="submit" value="Create Staff" style="display: block; margin: 0 auto;">
         </form>
     <?php endif; ?>
 
     <?php if (isset($action) && $action === 'deleteAccountForm'): ?>
         <h3>Delete User Account</h3>
         <form method="POST" action="">
+        
+        <div class="form-group">  
             <label for="userType">Select User Type:</label>
             <select id="userType" name="userType" required>
                 <option value="">--Select User Type--</option>
                 <option value="Patient">Patient</option>
                 <option value="Doctor">Doctor</option>
                 <option value="Staff">Staff</option>
-            </select><br><br>
-
+            </select>
+        </div>
+        <div class="form-group">  
             <label for="searchTerm">Search by Name, Email, User ID (for Patient) or Working ID (for Doctor/Staff):</label>
-            <input type="text" id="searchTerm" name="searchTerm" required><br><br>
-
+            <input type="text" id="searchTerm" name="searchTerm" required>
+        </div>
+            
             <input type="hidden" name="action" value="deleteUserSearch">
-            <input type="submit" value="Search">
+            <input type="submit" value="Search" style="display: block; margin: 0 auto;">
         </form>
         <?php endif; ?>
 
@@ -308,17 +328,22 @@ if (isset($_POST['action'])) {
     <?php if (isset($action) && $action === 'searchExams'): ?>  
     <h3>Search Exams by Patient</h3>
     <form method="POST" action="">
+    
+    <div class="form-group"> 
         <label for="patientName">Patient Name:</label>
-        <input type="text" id="patientName" name="patientName"><br><br>
-
+        <input type="text" id="patientName" name="patientName">
+    </div>
+    <div class="form-group"> 
         <label for="dateOfBirth">Date of Birth (optional):</label>
-        <input type="date" id="dateOfBirth" name="dateOfBirth"><br><br>
-
+        <input type="date" id="dateOfBirth" name="dateOfBirth">
+    </div>
+    <div class="form-group"> 
         <label for="healthID">Health ID (optional):</label>
-        <input type="text" id="healthID" name="healthID"><br><br>
-
+        <input type="text" id="healthID" name="healthID">
+    </div>
+        
         <input type="hidden" name="action" value="searchExams">
-        <input type="submit" value="Search">
+        <input type="submit" value="Search" style="display: block; margin: 0 auto;">
     </form>
 
     <?php if (isset($examResults) && !empty($examResults)): ?>
@@ -367,9 +392,12 @@ if (isset($_POST['action'])) {
 
     <!-- Report Form -->
     <form method="POST" action="">
+    
+    <div class="form-group"> 
     <label for="year">Year:</label>
-    <input type="number" id="year" name="year" value="<?php echo htmlspecialchars($selectedYear); ?>" required><br><br>
-
+    <input type="number" id="year" name="year" value="<?php echo htmlspecialchars($selectedYear); ?>" required>
+    </div>
+    <div class="form-group"> 
     <label for="month">Month (optional for specific monthly report):</label>
     <select id="month" name="month">
         <option value="">-- Select Month --</option>
@@ -378,10 +406,11 @@ if (isset($_POST['action'])) {
                 <?php echo date("F", mktime(0, 0, 0, $m, 1)); ?>
             </option>
         <?php endfor; ?>
-    </select><br><br>
+    </select>
+    </div>
 
     <input type="hidden" name="action" value="generateReport">
-    <input type="submit" value="Generate Report">
+    <input type="submit" value="Generate Report" style="display: block; margin: 0 auto;">
         
     </form>
 
@@ -390,7 +419,7 @@ if (isset($_POST['action'])) {
         <h3>Testing Summary Report for <?php echo $selectedMonth ? htmlspecialchars(date("F Y", mktime(0, 0, 0, $selectedMonth, 1, $selectedYear))) : htmlspecialchars($selectedYear); ?></h3>
     <table border="1">
         <tr>
-            <th>Patient ID</th>
+            <th>Health ID</th>
             <th>Patient Name</th>
             <th>Total Tests</th>
             <th>Abnormal Tests</th>
@@ -398,7 +427,7 @@ if (isset($_POST['action'])) {
         </tr>
         <?php foreach ($reportResults as $result): ?>
             <tr>
-                <td><?php echo htmlspecialchars($result['patientID']); ?></td>
+                <td><?php echo htmlspecialchars($result['healthID']); ?></td>
                 <td><?php echo htmlspecialchars($result['patientName']); ?></td>
                 <td><?php echo htmlspecialchars($result['totalTests']); ?></td>
                 <td><?php echo htmlspecialchars($result['abnormalTests']); ?></td>
@@ -415,18 +444,20 @@ if (isset($_POST['action'])) {
 
         <!-- Form for generating health prediction report -->
         <form method="POST" action="">
+        
+        <div class="form-group"> 
             <label for="year">Select Year for Prediction Report:</label>
-            <input type="number" id="year" name="year" value="<?php echo date('Y'); ?>" required><br><br>
-
+            <input type="number" id="year" name="year" value="<?php echo date('Y'); ?>" required>
+        </div>
             <input type="hidden" name="action" value="generateHealthPredictionReport">
-            <input type="submit" value="Generate Health Prediction Report">
+            <input type="submit" value="Generate Health Prediction Report" style="display: block; margin: 0 auto;">
         </form>
 
         <?php elseif ($action === 'generateHealthPredictionReport' && !empty($predictionReportResults)): ?>
             <h3>Health Prediction Report for <?php echo htmlspecialchars($selectedYear); ?></h3>
     <table border="1">
         <tr>
-            <th>Patient ID</th>
+            <th>Health ID</th>
             <th>Patient Name</th>
             <th>Exam Type</th>
             <th>Total Abnormal Occurrences</th>
@@ -435,7 +466,7 @@ if (isset($_POST['action'])) {
         </tr>
         <?php foreach ($predictionReportResults as $result): ?>
             <tr>
-                <td><?php echo htmlspecialchars($result['patientID']); ?></td>
+                <td><?php echo htmlspecialchars($result['healthID']); ?></td>
                 <td><?php echo htmlspecialchars($result['patientName']); ?></td>
                 <td><?php echo htmlspecialchars($result['examName']); ?></td>
                 <td><?php echo htmlspecialchars($result['abnormalCount']); ?></td>
@@ -460,6 +491,8 @@ if (isset($_POST['action'])) {
 <?php elseif ($action === 'generateHealthPredictionReport' && empty($predictionReportResults)): ?>
     <p>No health prediction data found for the selected year.</p>
 <?php endif; ?>
+
+</div>
 
 </body>
 </html>

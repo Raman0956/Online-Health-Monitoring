@@ -145,17 +145,20 @@ if ($action === 'logout') {
 <head>
     <meta charset="UTF-8">
     <title>Staff Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
     <h2>Staff Dashboard</h2>
-    
-    <form method="POST" action="">
+    <div class="container">
+    <div class="navbar">
+    <form method="POST" action="" class="navbar-form">
         <button type="submit" name="action" value="viewAccount">View Account</button>
         <button type="submit" name="action" value="modifyAccount">Modify Account</button>
         <button type="submit" name="action" value="getPendingExams">View All Pending Exams</button>
         <button type="submit" name="action" value="searchExams">Search By Patient Details</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
+    </div>
 
     <?php if ($action === 'viewAccount'): ?>
         <h3>View Account</h3>
@@ -168,33 +171,48 @@ if ($action === 'logout') {
 
     <?php if ($action === 'modifyAccount'): ?>
         <h3>Modify Account</h3>
+        <div class="modify-account-container">
+        <div class="modify-account">
         <form method="POST" action="">
+        
+        <div class="form-group"> 
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($staffInfo['name']); ?>" required><br><br>
-            
+            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($staffInfo['name']); ?>" required>
+        </div>
+        <div class="form-group"> 
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($staffInfo['email']); ?>" required><br><br>
-            
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($staffInfo['email']); ?>" required>
+        </div>
+        <div class="form-group">    
             <label for="phoneNumber">Phone Number:</label>
-            <input type="text" id="phoneNumber" name="phoneNumber" value="<?php echo htmlspecialchars($staffInfo['phoneNumber']); ?>" required><br><br>
-            
+            <input type="text" id="phoneNumber" name="phoneNumber" value="<?php echo htmlspecialchars($staffInfo['phoneNumber']); ?>" required>
+        </div>
+         
             <input type="hidden" name="action" value="modifyAccount">
-            <input type="submit" value="Save Changes">
+            <input type="submit" value="Save Changes" style="display: block; margin: 0 auto;">
         </form>
+        </div>
+    <div class="change-password">
         <h3>Change Password</h3>
         <form method="POST" action="" >
+        
+        <div class="form-group"> 
             <label for="currentPassword">Current Password:</label>
-            <input type="password" id="currentPassword" name="currentPassword" required><br><br>
-
+            <input type="password" id="currentPassword" name="currentPassword" required>
+        </div>
+        <div class="form-group"> 
             <label for="newPassword">New Password:</label>
-            <input type="password" id="newPassword" name="newPassword" required><br><br>
-
+            <input type="password" id="newPassword" name="newPassword" required>
+        </div>
+        <div class="form-group"> 
             <label for="confirmPassword">Confirm New Password:</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" required><br><br>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </div>
 
             <input type="hidden" name="action" value="changePassword">
-            <input type="submit" value="Change Password">
+            <input type="submit" value="Change Password" style="display: block; margin: 0 auto;">
         </form>
+    </div>
     <?php endif; ?>
 
     <?php if ($action === 'getPendingExams' && !empty($pendingExams)): ?>
@@ -222,15 +240,16 @@ if ($action === 'logout') {
                         <td>
                             <form method="POST" action="">
                                 <input type="hidden" name="prescriptionID" value="<?php echo $exam['prescriptionID']; ?>">
+                                <div class="form-group"> 
                                 <label>
-                                    Result:
-                                    <input type="text" name="result" required>
+                                    <input type="text" name="result" placeholder="result" required>
                                 </label>
+                                
                                 <label>
                                     <input type="checkbox" name="isAbnormal"> Abnormal
-                                </label>
+                                </label></div>
                                 <input type="hidden" name="action" value="submitExamResult">
-                                <input type="submit" value="Submit Result">
+                                <input type="submit" value="Submit Result" style="display: block; margin: 0 auto;">
                             </form>
                         </td>
                     </tr>
@@ -243,17 +262,23 @@ if ($action === 'logout') {
     <?php if ($action === 'searchExams'): ?>  
     <h3>Search Exams by Patient</h3>
     <form method="POST" action="">
+    
+    <div class="form-group">
         <label for="patientName">Patient Name:</label>
-        <input type="text" id="patientName" name="patientName"><br><br>
+        <input type="text" id="patientName" name="patientName">
+        </div>
+        <div class="form-group">
 
         <label for="dateOfBirth">Date of Birth (optional):</label>
-        <input type="date" id="dateOfBirth" name="dateOfBirth"><br><br>
+        <input type="date" id="dateOfBirth" name="dateOfBirth">
+        </div>
+        <div class="form-group">
 
         <label for="healthID">Health ID (optional):</label>
-        <input type="text" id="healthID" name="healthID"><br><br>
-
+        <input type="text" id="healthID" name="healthID">
+        </div>
         <input type="hidden" name="action" value="searchExams">
-        <input type="submit" value="Search">
+        <input type="submit" value="Search" style="display: block; margin: 0 auto;">
     </form>
 
     <?php if (isset($examResults) && !empty($examResults)): ?>
@@ -301,8 +326,7 @@ if ($action === 'logout') {
     <?php endif; ?>
 <?php endif; ?>
 
-
-
+</div>
 
 </body>
 </html>

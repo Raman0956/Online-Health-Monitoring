@@ -15,19 +15,33 @@ class Login {
     // Method to display the login form
     public function displayForm() {
         echo '
-        <h2>Login</h2>
-        <form method="POST" action="">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required><br><br>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Login</title>
+            <link rel="stylesheet" href="main.css">
+        </head>
+        <body>
+            <div class="container">
+                <h2>Login</h2>
+                <form method="POST" action="">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br><br>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
 
-            <input type="submit" name="login" value="Login">
-        </form>
-        <p>Don\'t have an account? <a href="patient_register.php">New Patient Register here</a></p>
+                    <input type="submit" name="login" value="Login">
+                </form>
+                <p>Don\'t have an account? <a href="patient_register.php">New Patient Register here</a></p>
+            </div>
+        </body>
+        </html>
         ';
     }
+
 
     // Method to handle the login process
     public function handleLogin() {

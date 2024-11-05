@@ -201,11 +201,13 @@ if ($action === 'logout') {
 <head>
     <meta charset="UTF-8">
     <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
     <h2>Doctor Dashboard</h2>
-    
-    <form method="POST" action="">
+    <div class="container">
+    <div class="navbar">
+    <form method="POST" action="" class="navbar-form">
         <button type="submit" name="action" value="viewAccount">View Account</button>
         <button type="submit" name="action" value="modifyAccount">Modify Account</button>
         <button type="submit" name="action" value="prescribeExam">Prescribe Exam</button>
@@ -213,6 +215,7 @@ if ($action === 'logout') {
         <button type="submit" name="action" value="setMonitoring">Monitoring</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
+    </div>
 
     <?php if ($action === 'viewAccount'): ?>
         <h3>View Account</h3>
@@ -223,71 +226,91 @@ if ($action === 'logout') {
 
     <?php elseif ($action === 'modifyAccount'): ?>
         <h3>Modify Account</h3>
+        <div class="modify-account-container">
+         <div class="modify-account">
         <form method="POST" action="">
+        
+        <div class="form-group">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($doctorInfo['name']); ?>" required><br><br>
-            
+        </div>
+        <div class="form-group">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($doctorInfo['email']); ?>" required><br><br>
-            
+        </div>
+        <div class="form-group">    
             <label for="phoneNumber">Phone Number:</label>
             <input type="text" id="phoneNumber" name="phoneNumber" value="<?php echo htmlspecialchars($doctorInfo['phoneNumber']); ?>" required><br><br>
+        </div>
             
             <input type="hidden" name="action" value="saveChanges">
-            <input type="submit" value="Save Changes">
+            <input type="submit" value="Save Changes" style="display: block; margin: 0 auto;">
         </form>
-
+    </div>
+    <div class="change-password">
         <h3>Change Password</h3>
         <form method="POST" action="" >
+        
+        <div class="form-group"> 
             <label for="currentPassword">Current Password:</label>
             <input type="password" id="currentPassword" name="currentPassword" required><br><br>
-
+        </div>
+        <div class="form-group"> 
             <label for="newPassword">New Password:</label>
             <input type="password" id="newPassword" name="newPassword" required><br><br>
-
+        </div>
+        <div class="form-group"> 
             <label for="confirmPassword">Confirm New Password:</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required><br><br>
-
+        </div>
+            
             <input type="hidden" name="action" value="changePassword">
-            <input type="submit" value="Change Password">
+            <input type="submit" value="Change Password" style="display: block; margin: 0 auto;">
         </form>
+    </div>
 
         <?php elseif ($action === 'prescribeExam'): ?>
         <h3>Search Patient</h3>
         <form method="POST" action="">
+        
+        <div class="form-group"> 
             <label for="patientName">Patient Name:</label>
             <input type="text" id="patientName" name="patientName" required><br><br>
-
+        </div>
+        <div class="form-group"> 
             <label for="dateOfBirth">Date of Birth (optional):</label>
             <input type="date" id="dateOfBirth" name="dateOfBirth"><br><br>
-
+        </div>
+        <div class="form-group"> 
             <label for="healthID">Health ID (optional):</label>
             <input type="text" id="healthID" name="healthID"><br><br>
-            
+        </div>
+        
             <input type="hidden" name="action" value="searchPatient">
-            <input type="submit" value="Search Patient">
+            <input type="submit" value="Search Patient" style="display: block; margin: 0 auto;">
         </form>
 
         <?php if ($patientResult): ?>
             <h3>Prescribe Exams for Patient: <?php echo htmlspecialchars($patientResult['name']); ?></h3>
             <form method="POST" action="">
                 <input type="hidden" name="patientID" value="<?php echo htmlspecialchars($patientResult['patientID']); ?>">
-
-                <?php foreach ($examData as $examName => $items): ?>
-                    <?php $examID = $examIDs[$examName] ?? null; ?>
-                    <?php if ($examID && $examName === "Blood Test" && !empty($items)): ?>
-                        <input type="checkbox" id="BloodTest" onchange="toggleSubCategories('BloodTestCategories')"> Blood Test<br>
-                        <div id="BloodTestCategories" style="display:none; margin-left: 20px;">
-                            <?php foreach ($items as $itemName => $itemID): ?>
-                                <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php elseif ($examID): ?>
-                        <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>"> <?php echo $examName; ?><br>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+                <div style="display: block; margin: 0 auto;">
+                    <?php foreach ($examData as $examName => $items): ?>
+                        <?php $examID = $examIDs[$examName] ?? null; ?>
+                        <?php if ($examID && $examName === "Blood Test" && !empty($items)): ?>
+                            <input type="checkbox" id="BloodTest" onchange="toggleSubCategories('BloodTestCategories')"> Blood Test<br>
+                            <div id="BloodTestCategories" style="display:none; margin-left: 20px;">
+                                <?php foreach ($items as $itemName => $itemID): ?>
+                                    <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php elseif ($examID): ?>
+                            <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>"> <?php echo $examName; ?><br>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
                 <input type="hidden" name="action" value="submitPrescription">
-                <input type="submit" value="Prescribe Exams">
+                <input type="submit" value="Prescribe Exams" style="display: block; margin: 0 auto;">
             </form>
         <?php endif; ?>
 
@@ -295,35 +318,43 @@ if ($action === 'logout') {
         <?php elseif ($action === 'searchExamResults'): ?>
         <h3>Check Exam Results</h3>
         <form method="POST" action="">
-            <label for="patientName">Patient Name:</label>
-            <input type="text" id="patientName" name="patientName" required><br><br>
-            <label for="prescriptionDate">Prescription Date (optional):</label>
-            <input type="date" id="prescriptionDate" name="prescriptionDate"><br><br>
-            <label>Select Exam Type:</label><br>
         
-            <!-- Exam type checkboxes with subcategories -->
-            <?php foreach ($examData as $examName => $items): ?>
-                <?php $examID = $examIDs[$examName] ?? null; ?>
-                <?php if ($examID): ?>
-                    <!-- Main Exam Checkbox -->
-                    <input type="checkbox" id="<?php echo $examName; ?>" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>" <?php echo !empty($items) ? 'onchange="toggleSubCategories(\'' . $examName . 'Categories\')"' : ''; ?>>
-                    <?php echo $examName; ?><br>
+        <div class="form-group"> 
+            <label for="patientName">Patient Name:</label>
+            <input type="text" id="patientName" name="patientName" required>
+        </div>
+        <div class="form-group"> 
+            <label for="prescriptionDate">Prescription Date (optional):</label>
+            <input type="date" id="prescriptionDate" name="prescriptionDate">
+        </div>
+            <label>Select Exam Type:</label>
+            <div style="display: block; margin: 0 auto;">
+                <!-- Exam type checkboxes with subcategories -->
+                <?php foreach ($examData as $examName => $items): ?>
+                    <?php $examID = $examIDs[$examName] ?? null; ?>
+                    <?php if ($examID): ?>
+                        <!-- Main Exam Checkbox -->
+                        <input type="checkbox" id="<?php echo $examName; ?>" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>" <?php echo !empty($items) ? 'onchange="toggleSubCategories(\'' . $examName . 'Categories\')"' : ''; ?>>
+                        <?php echo $examName; ?><br>
 
-                    <!-- Subcategory checkboxes if there are items -->
-                    <?php if (!empty($items)): ?>
-                        <div id="<?php echo $examName; ?>Categories" style="display:none; margin-left: 20px;">
-                            <?php foreach ($items as $itemName => $itemID): ?>
-                                <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
-                            <?php endforeach; ?>
-                        </div>
+                        <!-- Subcategory checkboxes if there are items -->
+                        <?php if (!empty($items)): ?>
+                            <div id="<?php echo $examName; ?>Categories" style="display:none; margin-left: 20px;">
+                                <?php foreach ($items as $itemName => $itemID): ?>
+                                    <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
-                <?php endif; ?>
-            <?php endforeach; ?> <br>
-
+                <?php endforeach; ?> <br>
+            </div>
+            
+        <div class="form-group"> 
             <label for="isAbnormal">Only Abnormal Results:</label>
-            <input type="checkbox" id="isAbnormal" name="isAbnormal" value="1"><br><br>
+            <input type="checkbox" id="isAbnormal" name="isAbnormal" value="1">
+        </div>
             <input type="hidden" name="action" value="executeSearchExamResults">
-            <input type="submit" value="Search Results">
+            <input type="submit" value="Search Results" style="display: block; margin: 0 auto;">
         </form>
 
         <?php elseif ($action === 'executeSearchExamResults'): ?>
@@ -357,14 +388,22 @@ if ($action === 'logout') {
     <?php elseif ($action === 'setMonitoring'): ?>
         <h3>Set Monitoring for Patient</h3>
         <form method="POST" action="">
+        
+        <div class="form-group"> 
             <label for="patientName">Patient Name:</label>
-            <input type="text" id="patientName" name="patientName" required><br><br>
+            <input type="text" id="patientName" name="patientName" required>
+        </div>
+        <div class="form-group"> 
             <label for="dateOfBirth">Date of Birth (optional):</label>
-            <input type="date" id="dateOfBirth" name="dateOfBirth"><br><br>
+            <input type="date" id="dateOfBirth" name="dateOfBirth">
+        </div>
+        <div class="form-group"> 
             <label for="healthID">Health ID (optional):</label>
-            <input type="text" id="healthID" name="healthID"><br><br>
+            <input type="text" id="healthID" name="healthID">
+        </div>
+        
             <input type="hidden" name="action" value="searchPatientToMonitor">
-            <input type="submit" value="Search Patient">
+            <input type="submit" value="Search Patient" style="display: block; margin: 0 auto;">
         </form>
     <?php endif; ?>
 
@@ -373,22 +412,27 @@ if ($action === 'logout') {
         <h3>Set Monitoring for Patient: <?php echo htmlspecialchars($patientResult['name']); ?></h3>
 
         <!-- Display Currently Monitored Items if Available -->
-        <?php if (!empty($monitoredItems)): ?>
-            <h4>Currently Monitored Items</h4>
+        <?php if (!empty($monitoredItems)): ?> <br><br>
+            <h4 style="display: flex; justify-content: center; align-items: center; margin: 0;">Currently Monitored Items</h4>
             <form method="POST" action="">
+            <div class="form-group"> 
                 <?php foreach ($monitoredItems as $item): ?>
+                    
                     <p><?php echo htmlspecialchars($item['examName']) . ' - ' . htmlspecialchars($item['itemName']); ?></p>
                     <input type="hidden" name="monitorID" value="<?php echo htmlspecialchars($item['monitoringID']); ?>">
                     <button type="submit" name="action" value="deleteMonitoring">Delete</button><br>
                 <?php endforeach; ?>
+                </div>
             </form>
         <?php else: ?>
             <p>No current monitoring items found for this patient.</p>
         <?php endif; ?>
+        <br><br>
 
         <!-- Form to Set New Monitoring -->
-        <h4>Set New Monitoring</h4>
+        <h4 style="display: flex; justify-content: center; align-items: center; margin: 0;">Set New Monitoring</h4>
         <form method="POST" action="">
+        <div style="display: block; margin: 0 auto;">
             <input type="hidden" name="patientID" value="<?php echo htmlspecialchars($patientResult['patientID']); ?>">
             <?php foreach ($examData as $examName => $items): ?>
                 <?php $examID = $examIDs[$examName] ?? null; ?>
@@ -403,8 +447,9 @@ if ($action === 'logout') {
                     <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>"> <?php echo $examName; ?><br>
                 <?php endif; ?>
             <?php endforeach; ?>
+        </div>
             <input type="hidden" name="action" value="setupMonitoring">
-            <input type="submit" value="Set Monitoring">
+            <input type="submit" value="Set Monitoring" style="display: block; margin: 0 auto;">
         </form>
     <?php endif; ?>
 
@@ -424,5 +469,6 @@ if ($action === 'logout') {
             <?php echo $prescriptionMessage; ?>
         </div>
     <?php endif; ?>
+    </div>
 </body>
 </html>

@@ -102,17 +102,20 @@ if ($isApproved) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pateint Dashboard</title>
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-
+    <div class="container">
     
-    <form method="POST" action="">
+    <div class="navbar">
+    <form method="POST" action="" class="navbar-form">
         <button type="submit" name="action" value="viewAccount">View Account</button>
         <button type="submit" name="action" value="modifyAccount">Modify Account</button>
         <button type="submit" name="action" value="searchExamResults">Check Exam Results</button>
         <button type="submit" name="action" value="logout">Logout</button>
     </form>
+</div>
 
     <?php if ($action === 'viewAccount'): ?>
         <h3>View Account</h3>
@@ -124,72 +127,95 @@ if ($isApproved) {
 
     <?php elseif ($action === 'modifyAccount'): ?>
         <h3>Modify Account</h3>
+        <div class="modify-account-container">
+        <div class="modify-account">
         <form method="POST" action="">
+        <div class="form-group">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($patientInfo['name']); ?>" required><br><br>
-            
+            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($patientInfo['name']); ?>" required>        
+         </div>
+            <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($patientInfo['email']); ?>" required><br><br>
-            
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($patientInfo['email']); ?>" required>
+            </div>
+            <div class="form-group">
             <label for="phoneNumber">Phone Number:</label>
-            <input type="text" id="phoneNumber" name="phoneNumber" value="<?php echo htmlspecialchars($patientInfo['phoneNumber']); ?>" required><br><br>
-
+            <input type="text" id="phoneNumber" name="phoneNumber" value="<?php echo htmlspecialchars($patientInfo['phoneNumber']); ?>" required>
+            </div>
+            <div class="form-group">
             <label for="healthID">Health ID:</label>
-            <input type="text" id="healthID" name="healthID" value="<?php echo htmlspecialchars($patientInfo['healthID']); ?>" required><br><br>
-
+            <input type="text" id="healthID" name="healthID" value="<?php echo htmlspecialchars($patientInfo['healthID']); ?>" required>
+            </div>              
+            <div class="form-group">
             <label for="dateOFBirth">Date OF Birth:</label>
-            <input type="text" id="dateOFBirth" name="dateOfBirth" value="<?php echo htmlspecialchars($patientInfo['dateOfBirth']); ?>" required><br><br>
+            <input type="text" id="dateOFBirth" name="dateOfBirth" value="<?php echo htmlspecialchars($patientInfo['dateOfBirth']); ?>" required>
+            </div>
             
             <input type="hidden" name="action" value="saveChanges">
-            <input type="submit" value="Save Changes">
-        </form>
+            <input type="submit" value="Save Changes" style="display: block; margin: 0 auto;">
 
+        </form>
+    </div>
+    <div class="change-password">
         <h3>Change Password</h3>
         <form method="POST" action="" >
+        <div class="form-group">
             <label for="currentPassword">Current Password:</label>
-            <input type="password" id="currentPassword" name="currentPassword" required><br><br>
-
+            <input type="password" id="currentPassword" name="currentPassword" required>
+            </div>
+            <div class="form-group">
             <label for="newPassword">New Password:</label>
-            <input type="password" id="newPassword" name="newPassword" required><br><br>
-
+            <input type="password" id="newPassword" name="newPassword" required>
+            </div>
+            <div class="form-group">
             <label for="confirmPassword">Confirm New Password:</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" required><br><br>
-
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
             <input type="hidden" name="action" value="changePassword">
-            <input type="submit" value="Change Password">
+            <input type="submit" value="Change Password" style="display: block; margin: 0 auto;">
         </form>
+    </div>
 
-        <?php elseif ($action === 'searchExamResults'): ?>
-        <h3>Check Exam Results</h3>
+    <?php elseif ($action === 'searchExamResults'): ?>
+        <h3>Check Exam Results for <?php echo htmlspecialchars($patientInfo['name']); ?> </h3>
         <form method="POST" action="">
-            <label for="patientName">Patient Name: <?php echo htmlspecialchars($patientInfo['name']); ?> </label><br><br>
+        <div class="form-group">
             <label for="prescriptionDate">Prescription Date (optional):</label>
             <input type="date" id="prescriptionDate" name="prescriptionDate"><br><br>
-            <label>Select Exam Type:</label><br>
+        </div>
         
-            <!-- Exam type checkboxes with subcategories -->
-            <?php foreach ($examData as $examName => $items): ?>
-                <?php $examID = $examIDs[$examName] ?? null; ?>
-                <?php if ($examID): ?>
-                    <!-- Main Exam Checkbox -->
-                    <input type="checkbox" id="<?php echo $examName; ?>" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>" <?php echo !empty($items) ? 'onchange="toggleSubCategories(\'' . $examName . 'Categories\')"' : ''; ?>>
-                    <?php echo $examName; ?><br>
+                
+                    <label>Select Exam Type:</label>
+                    <div style="display: block; margin: 0 auto;">
 
-                    <!-- Subcategory checkboxes if there are items -->
-                    <?php if (!empty($items)): ?>
-                        <div id="<?php echo $examName; ?>Categories" style="display:none; margin-left: 20px;">
-                            <?php foreach ($items as $itemName => $itemID): ?>
-                                <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?><br>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-            <?php endforeach; ?> <br>
+                    <!-- Exam type checkboxes with subcategories -->
+                    <?php foreach ($examData as $examName => $items): ?>
+                        <?php $examID = $examIDs[$examName] ?? null; ?>
+                        <?php if ($examID): ?>
+                            <!-- Main Exam Checkbox -->
+                            <input type="checkbox" id="<?php echo $examName; ?>" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $examID; ?>" <?php echo !empty($items) ? 'onchange="toggleSubCategories(\'' . $examName . 'Categories\')"' : ''; ?>>
+                            <?php echo $examName; ?>
+
+                            <!-- Subcategory checkboxes if there are items -->
+                            <?php if (!empty($items)): ?>
+                                <div id="<?php echo $examName; ?>Categories" style="display:none; margin-left: 20px;">
+                                    <?php foreach ($items as $itemName => $itemID): ?>
+                                        <input type="checkbox" name="examCategories[<?php echo $examID; ?>][]" value="<?php echo $itemID; ?>"> <?php echo $itemName; ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?> <br>
+                    </div>
+                     
+
+            <div class="form-group">
 
             <label for="isAbnormal">Only Abnormal Results:</label>
             <input type="checkbox" id="isAbnormal" name="isAbnormal" value="1"><br><br>
+            </div>
             <input type="hidden" name="action" value="executeSearchExamResults">
-            <input type="submit" value="Search Results">
+            <input type="submit" value="Search Results" style="display: block; margin: 0 auto;">
         </form>
 
         <?php elseif ($action === 'executeSearchExamResults'): ?>
@@ -218,5 +244,12 @@ if ($isApproved) {
         <?php endif; ?>
 
         <?php endif; ?>
+
+        <script>
+        function toggleSubCategories(categoryID) {
+            let category = document.getElementById(categoryID);
+            category.style.display = category.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 
 </body>

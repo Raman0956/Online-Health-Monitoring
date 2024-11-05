@@ -216,6 +216,7 @@ class Admin extends User {
                 SELECT 
                     u.userID AS patientID,
                     u.name AS patientName,
+                    p.healthID,
                     COUNT(pe.prescriptionID) AS totalTests,
                     SUM(CASE WHEN pe.isAbnormal = 1 THEN 1 ELSE 0 END) AS abnormalTests,
                     IF(COUNT(pe.prescriptionID) > 0, (SUM(CASE WHEN pe.isAbnormal = 1 THEN 1 ELSE 0 END) / COUNT(pe.prescriptionID)) * 100, 0) AS abnormalPercentage
@@ -235,7 +236,7 @@ class Admin extends User {
     
             $sql .= "
                 GROUP BY 
-                    u.userID, u.name
+                    u.userID, u.name, p.healthID
                 ORDER BY 
                     u.name ASC";
             
@@ -260,6 +261,7 @@ class Admin extends User {
                 SELECT 
                     u.userID AS patientID,
                     u.name AS patientName,
+                    p.healthID,  -- Include healthID in the result set
                     e.examName,
                     COUNT(pe.isAbnormal) AS abnormalCount,
                     CASE
@@ -290,12 +292,13 @@ class Admin extends User {
                     pe.isAbnormal = 1 
                     AND YEAR(pe.prescriptionDate) = :year
                 GROUP BY 
-                    u.userID, u.name, e.examName
+                    u.userID, u.name, p.healthID, e.examName  -- Added healthID to GROUP BY
                 HAVING 
                     abnormalCount >= 2
                 ORDER BY 
                     Priority DESC, patientName ASC
             ";
+            
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':year', $year, PDO::PARAM_INT);
             $stmt->execute();
@@ -306,6 +309,7 @@ class Admin extends User {
             return [];
         }
     }
+    
        
     
 
