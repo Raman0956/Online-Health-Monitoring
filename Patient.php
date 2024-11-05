@@ -288,7 +288,7 @@ class Patient extends User {
                 $stmt->bindValue(':isApproved', $isApproved, PDO::PARAM_BOOL);
 
                 if ($stmt->execute()) {
-                    echo "<script>alert('Account registered successfully. Waiting for approval.'); window.location.href='login.php';</script>";
+                    echo "<script>alert('Account registration request sent. Waiting for approval.'); window.location.href='login.php';</script>";
                 } else {
                     echo "Error: " . implode(", ", $stmt->errorInfo());
                 }
