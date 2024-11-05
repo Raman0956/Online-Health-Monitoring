@@ -62,7 +62,7 @@ class Login {
                     if ($userData['userType'] === 'Patient') {
                         $approvalStatus = $this->checkPatientApprovalStatus($userData['userID']);
                         if (!$approvalStatus) {
-                            echo "<script>alert('Your account is pending approval.');</script>";
+                            echo "<script>alert('Your account is pending approval. Check back later or contact Clinic helpdesk');</script>";
                             return;
                         }
                     }
