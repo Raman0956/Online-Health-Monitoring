@@ -52,53 +52,7 @@ class Admin extends User {
         $userType = "Doctor";
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        try{
-
-            // Validate Name: Should not contain numbers
-            if (!preg_match("/^[a-zA-Z\s]+$/", $name)) {
-                return "Name should only contain alphabets and spaces.";
-            }
-
-            // Validate Email Format
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return "Invalid email format.";
-            }
-
-            // Validate Phone Number Format: +1(000)-000-0000
-            if (!preg_match("/^\d{3}\-\d{3}-\d{4}$/", $phoneNumber)) {
-                return "Phone number must be in the format +1(000)-000-0000.";
-            }
-
-            // Validate Health ID: At least 8 digits
-            if (!preg_match("/^\d{8,}$/", $workingID)) {
-                return "Working ID should be at least 8 digits.";
-            }
-
-            // Check if the workingID already exists
-            $sql = "SELECT COUNT(*) FROM Doctor WHERE workingID = :workingID";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindValue(':workingID', $workingID);
-            $stmt->execute();
-            $workingIDExists = $stmt->fetchColumn();
-
-            if ($workingIDExists > 0) {
-                echo "<script>alert('An account already exists with this Working ID. Please use a different Working ID.');</script>";
-                return; // Stop further execution if workingID exists
-            }
-
-            // If there are validation errors, display them
-            if (!empty($errors)) {
-                $_SESSION['errors'] = $errors;
-                $_SESSION['formData'] = [
-                    'name' => $name,
-                    'email' => $email,
-                    'phoneNumber' => $phoneNumber,
-                    'workingID' => $workingID
-                ];
-                header("Location: admin_dashboard.php?action=createDoctorForm");
-                exit();
-            }
-            
+        try{   
             // Insert doctor into User table
             $sql = "INSERT INTO User (name, email, phoneNumber, password, userType) VALUES (:name, :email, :phoneNumber, :password, :userType)";
             $stmt = $conn->prepare($sql);

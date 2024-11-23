@@ -252,28 +252,7 @@ class Patient extends User {
         $userType = "Patient";
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        try {
-
-        // Validate Name: Should not contain numbers
-        if (!preg_match("/^[a-zA-Z\s]+$/", $name)) {
-            return "Name should only contain alphabets and spaces.";
-        }
-
-        // Validate Email Format
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return "Invalid email format.";
-        }
-
-        // Validate Phone Number Format: +1(000)-000-0000
-        if (!preg_match("/^\d{3}\-\d{3}-\d{4}$/", $phoneNumber)) {
-            return "Phone number must be in the format 000-000-0000.";
-        }
-
-        // Validate Health ID: At least 8 digits
-        if (!preg_match("/^\d{8,}$/", $healthID)) {
-            return "Health ID should be at least 8 digits.";
-        }
-
+        try{    
             // Check if email already exists
             $sql = "SELECT COUNT(*) FROM User WHERE email = :email";
             $stmt = $conn->prepare($sql);
@@ -286,17 +265,6 @@ class Patient extends User {
                 return;
             }
 
-             // Check if healthID already exists
-            $sql = "SELECT COUNT(*) FROM Patient WHERE healthID = :healthID";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindValue(':healthID', $healthID);
-            $stmt->execute();
-            $healthIDExists = $stmt->fetchColumn();
-
-            if ($healthIDExists > 0) {
-                echo "<script>alert('An account already exists with this Health ID. Please contact Clinic for further help.');</script>";
-                return;
-            }
 
             // Insert user into the User table
             $sql = "INSERT INTO User (name, email, phoneNumber, password, userType) VALUES (:name, :email, :phoneNumber, :password, :userType)";

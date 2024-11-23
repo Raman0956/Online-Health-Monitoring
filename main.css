@@ -1,8 +1,8 @@
 /* main.css */
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f5;
+    font-family: 'Roboto', sans-serif; /* Modern font */
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2); /* Updated gradient background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,17 +11,18 @@ body {
 }
 
 .container {
-    width: 100%;
+    width: 90%;
     max-width: 400px;
-    background-color: #fff;
+    background-color: #ffffff; /* White background for the container */
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 15px; /* Increased border radius */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25); /* Deeper shadow for depth */
 }
 
 h2 {
     text-align: center;
-    color: #333;
+    color: #00695c; /* Dark teal for headings */
+    font-size: 1.75rem; /* Increased font size for headings */
 }
 
 form label {
@@ -38,23 +39,36 @@ form input[type="submit"] {
     padding: 0.75rem;
     margin-bottom: 1rem;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 10px; /* Increased border radius */
+    transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transitions */
+}
+
+form input[type="email"]:focus,
+form input[type="password"]:focus {
+    border-color: #00796b; /* Change border color on focus */
+    box-shadow: 0 0 5px rgba(0, 121, 107, 0.5); /* Add shadow on focus */
 }
 
 form input[type="submit"] {
-    background-color: #4CAF50;
+    background-color: #00796b; /* Teal button color */
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s; /* Add transform transition */
+    border-radius: 5px; /* Rounded corners for the button */
 }
 
 form input[type="submit"]:hover {
-    background-color: #45a049;
+    background-color: #004d40; /* Darker teal on hover */
+    transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+form input[type="submit"]:active {
+    transform: translateY(0); /* Reset on click */
 }
 
 a {
-    color: #4CAF50;
+    color: #00796b; /* Teal link color */
     text-decoration: none;
 }
 
