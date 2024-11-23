@@ -55,7 +55,6 @@ class Patient extends User {
 
     
     // Get account information, including working ID
-    // Get account information, including working ID
     public function getAccountInfo($conn) {
         try {
             $sql = "SELECT User.name, User.email, User.phoneNumber, Patient.dateOfBirth, Patient.healthID 
@@ -254,6 +253,27 @@ class Patient extends User {
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
         try {
+
+        // Validate Name: Should not contain numbers
+        if (!preg_match("/^[a-zA-Z\s]+$/", $name)) {
+            return "Name should only contain alphabets and spaces.";
+        }
+
+        // Validate Email Format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return "Invalid email format.";
+        }
+
+        // Validate Phone Number Format: +1(000)-000-0000
+        if (!preg_match("/^\d{3}\-\d{3}-\d{4}$/", $phoneNumber)) {
+            return "Phone number must be in the format 000-000-0000.";
+        }
+
+        // Validate Health ID: At least 8 digits
+        if (!preg_match("/^\d{8,}$/", $healthID)) {
+            return "Health ID should be at least 8 digits.";
+        }
+
             // Check if email already exists
             $sql = "SELECT COUNT(*) FROM User WHERE email = :email";
             $stmt = $conn->prepare($sql);
@@ -263,6 +283,18 @@ class Patient extends User {
 
             if ($emailExists > 0) {
                 echo "<script>alert('An account already exists with this email');</script>";
+                return;
+            }
+
+             // Check if healthID already exists
+            $sql = "SELECT COUNT(*) FROM Patient WHERE healthID = :healthID";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(':healthID', $healthID);
+            $stmt->execute();
+            $healthIDExists = $stmt->fetchColumn();
+
+            if ($healthIDExists > 0) {
+                echo "<script>alert('An account already exists with this Health ID. Please contact Clinic for further help.');</script>";
                 return;
             }
 
