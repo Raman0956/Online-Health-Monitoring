@@ -33,7 +33,13 @@ if (isset($_POST['action'])) {
         $doctorPassword = $_POST['doctorPassword'];
         $doctorWorkingID = $_POST['doctorWorkingID'];
         
-        $admin->createDoctor($conn, $doctorName, $doctorEmail, $doctorPhoneNumber, $doctorPassword, $doctorWorkingID);
+        
+        $filename= $_FILES["image"]["name"];
+        $tempname = $_FILES["image"]["tmp_name"];
+        $folder = "images/".$filename;
+        move_uploaded_file($tempname , $folder);
+        
+        $admin->createDoctor($conn, $doctorName, $doctorEmail, $doctorPhoneNumber, $doctorPassword, $doctorWorkingID, $folder);
     }
 
     // Create Staff
@@ -43,8 +49,13 @@ if (isset($_POST['action'])) {
         $staffPhoneNumber = $_POST['staffPhoneNumber'];
         $staffPassword = $_POST['staffPassword'];
         $staffWorkingID = $_POST['staffWorkingID'];
+
+        $filename1= $_FILES["image"]["name"];
+        $tempname1 = $_FILES["image"]["tmp_name"];
+        $folder = "images/".$filename1;
+        move_uploaded_file($tempname1 , $folder);
         
-        $admin->createStaff($conn, $staffName, $staffEmail, $staffPhoneNumber, $staffPassword, $staffWorkingID);
+        $admin->createStaff($conn, $staffName, $staffEmail, $staffPhoneNumber, $staffPassword, $staffWorkingID,$folder);
     }
 
     // Handle form submissions for deleting a user
@@ -207,7 +218,7 @@ if (isset($_POST['action'])) {
 
     <?php if (isset($action) && $action === 'createDoctorForm'): ?>
         <h3>Create New Doctor Account</h3>
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
         <div class="form-group">
             <label for="doctorName">Name:</label>
             <input type="text" id="doctorName" name="doctorName" required>
@@ -228,14 +239,20 @@ if (isset($_POST['action'])) {
             <label for="doctorWorkingID">Working ID:</label>
             <input type="text" id="doctorWorkingID" name="doctorWorkingID" required>
         </div>
+        <div class="form-group">
+        <label for="file">Add Image</label>
+        <input type="file" name="image" id="image" required>
+        </div>
+
             <input type="hidden" name="action" value="createDoctor">
             <input type="submit" value="Create Doctor" style="display: block; margin: 0 auto;">
         </form>
+
     <?php endif; ?>
 
     <?php if (isset($action) && $action === 'createStaffForm'): ?>
         <h3>Create New Staff Account</h3>
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
         
         <div class="form-group">   
             <label for="staffName">Name:</label>
@@ -257,7 +274,11 @@ if (isset($_POST['action'])) {
             <label for="staffWorkingID">Working ID:</label>
             <input type="text" id="staffWorkingID" name="staffWorkingID" required>
         </div>
-          
+        <div class="form-group">
+
+        <label for="file">Add Image</label>
+        <input type="file" name="image" id="image" required>
+        </div>
             <input type="hidden" name="action" value="createStaff">
             <input type="submit" value="Create Staff" style="display: block; margin: 0 auto;">
         </form>
@@ -493,6 +514,22 @@ if (isset($_POST['action'])) {
 <?php endif; ?>
 
 </div>
+
+<script>
+
+// Highlighting new image name and showing upload button
+    function uploadShow() {
+        let uploadBtn = document.getElementsByName('submitPhotoBtn')[0];
+        uploadBtn.style.display = "block";
+
+
+        let uploadBtnTxt = document.getElementById('fileToUpload');
+        uploadBtnTxt.style.fontStyle = "italic";
+        uploadBtnTxt.style.backgroundColor = "yellow";
+
+    }
+
+    </script>
 
 </body>
 </html>

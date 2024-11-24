@@ -1,8 +1,8 @@
 /* main.css */
 
 body {
-    font-family: 'Roboto', sans-serif; /* Modern font */
-    background: linear-gradient(135deg, #e0f7fa, #b2ebf2); /* Updated gradient background */
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f5;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,18 +11,17 @@ body {
 }
 
 .container {
-    width: 90%;
+    width: 100%;
     max-width: 400px;
-    background-color: #ffffff; /* White background for the container */
+    background-color: #fff;
     padding: 2rem;
-    border-radius: 15px; /* Increased border radius */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25); /* Deeper shadow for depth */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
     text-align: center;
-    color: #00695c; /* Dark teal for headings */
-    font-size: 1.75rem; /* Increased font size for headings */
+    color: #333;
 }
 
 form label {
@@ -39,36 +38,23 @@ form input[type="submit"] {
     padding: 0.75rem;
     margin-bottom: 1rem;
     border: 1px solid #ccc;
-    border-radius: 10px; /* Increased border radius */
-    transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transitions */
-}
-
-form input[type="email"]:focus,
-form input[type="password"]:focus {
-    border-color: #00796b; /* Change border color on focus */
-    box-shadow: 0 0 5px rgba(0, 121, 107, 0.5); /* Add shadow on focus */
+    border-radius: 4px;
 }
 
 form input[type="submit"] {
-    background-color: #00796b; /* Teal button color */
+    background-color: #4CAF50;
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s; /* Add transform transition */
-    border-radius: 5px; /* Rounded corners for the button */
+    transition: background-color 0.3s;
 }
 
 form input[type="submit"]:hover {
-    background-color: #004d40; /* Darker teal on hover */
-    transform: translateY(-2px); /* Slight lift effect on hover */
-}
-
-form input[type="submit"]:active {
-    transform: translateY(0); /* Reset on click */
+    background-color: #45a049;
 }
 
 a {
-    color: #00796b; /* Teal link color */
+    color: #4CAF50;
     text-decoration: none;
 }
 

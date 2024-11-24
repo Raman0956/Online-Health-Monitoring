@@ -1,7 +1,7 @@
 /* General Styles for the Dashboard */
 body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #e0f7fa, #b2ebf2); /* Updated gradient background */
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f5;
     margin: 0;
     padding: 0;
 }
@@ -12,24 +12,24 @@ body {
     margin: 20px auto;
     padding: 20px;
     background-color: #ffffff;
-    border-radius: 15px; /* Increased border radius for a softer look */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25); /* Deeper shadow for depth */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h2, h3 {
-    color: #00695c; /* Dark teal for headings */
+    color: #333;
     text-align: center;
-    font-size: 1.75rem; /* Increased font size for headings */
 }
 
+
 p {
-    color: #555; /* Softer color for paragraph text */
+    color: #555;
     text-align: center;
 }
 
 /* Link Styles */
 a {
-    color: #00796b; /* Teal link color */
+    color: #4CAF50;
     text-decoration: none;
 }
 
@@ -41,16 +41,16 @@ a:hover {
 .modify-account-container {
     display: flex;
     justify-content: space-between;
-    gap: 30px;
+    gap: 20px;
 }
 
 .modify-account,
 .change-password {
     width: 48%;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px; /* Increased border radius */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Form and Button Styles */
@@ -61,7 +61,7 @@ form:not(.navbar-form) {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
-    gap: 20px;
+    gap: 15px;
 }
 
 form .form-group {
@@ -72,8 +72,8 @@ form .form-group {
 
 form label {
     font-weight: bold;
-    margin-right: 15px;
-    width: 160px; /* Set a fixed width to align labels */
+    margin-right: 10px;
+    width: 150px; /* Set a fixed width to align labels */
     text-align: right; /* Align labels to the right */
 }
 
@@ -84,62 +84,121 @@ form input[type="number"],
 form input[type="date"],
 form select {
     flex: 1;
-    padding: 12px;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 10px; /* Increased border radius */
-    transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transitions */
-}
-
-form input[type="text"]:focus,
-form input[type="email"]:focus,
-form input[type="password"]:focus {
-    border-color: #00796b; /* Change border color on focus */
-    box-shadow: 0 0 5px rgba(0, 121, 107, 0.5); /* Add shadow on focus */
+    border-radius: 4px;
 }
 
 form button {
     align-self: center;
-    background-color: #00796b; /* Teal button color */
+    background-color: #4CAF50;
     color: #ffffff;
-    padding: 12px 25px;
+    padding: 10px 20px;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s; /* Add transform transition */
-    border-radius: 5px;
+    transition: background-color 0.3s;
+    border-radius: 4px;
 }
 
 form button:hover {
-    background-color: #004d40; /* Darker teal on hover */
-    transform: translateY(-2px); /* Slight lift effect on hover */
-}
-
-form button:active {
-    transform: translateY(0); /* Reset on click */
+    background-color: #45a049;
 }
 
 /* Navbar Styles */
 .navbar {
     display: flex;
     justify-content: center;
-    background-color: #00796b; /* Teal navbar */
-    padding: 12px;
+    background-color: #4CAF50;
+    padding: 10px;
     margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-form {
     display: flex;
     flex-direction: row;
-    gap: 15px;
+    gap: 10px;
 }
 
 .navbar-form button {
     background-color: #ffffff;
-    color: #00796b; /* Teal text color */
+    color: #333;
     border: none;
-    padding: 12px 20px;
+    padding: 10px 20px;
     font-weight: bold;
     cursor: pointer;
-    border-radius: 5px;
-   
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.navbar-form button:hover {
+    background-color: #e0e0e0;
+}
+
+
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f7f7f9;
+    color: #333;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #e0e7ff;
+}
+
+/* Priority Colors for Prediction Reports */
+.priority-low {
+    background-color: yellow;
+}
+
+.priority-medium {
+    background-color: orange;
+}
+
+.priority-high {
+    background-color: red;
+    color: #fff;
+}
+
+/* Custom Styling for Specific Elements */
+.approve-btn {
+    background-color: #4CAF50;
+}
+
+.delete-btn {
+    background-color: #f44336;
+}
+
+.delete-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Alerts */
+.alert {
+    color: #d32f2f;
+    text-align: center;
+    font-weight: bold;
+}
+
+

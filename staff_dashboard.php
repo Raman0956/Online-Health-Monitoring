@@ -37,6 +37,22 @@ if ($action === 'saveChanges' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+if ($action === 'uploadImage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename= $_FILES["image"]["name"];
+    $tempname = $_FILES["image"]["tmp_name"];
+    $folder = "images/".$filename;
+    move_uploaded_file($tempname , $folder);
+    $success = $staff->uploadImage($conn, $folder);
+
+    if ($success) {
+        echo "<script>alert('Photo updated successfully.'); window.location.href='staff_dashboard.php?action=viewAccount';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Failed to update Photo.');</script>";
+    }
+}
+
+
 if ($action === 'changePassword' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $currentPassword = $_POST['currentPassword'] ?? '';
     $newPassword = $_POST['newPassword'] ?? '';
@@ -162,6 +178,7 @@ if ($action === 'logout') {
 
     <?php if ($action === 'viewAccount'): ?>
         <h3>View Account</h3>
+        <p><img src="<?php echo $staffInfo['imagePath']; ?>" alt="Staff Image" width="200" height="200"></p>
         <p>Name: <?php echo htmlspecialchars($staffInfo['name']); ?></p>
         <p>Email: <?php echo htmlspecialchars($staffInfo['email']); ?></p>
         <p>Phone Number: <?php echo htmlspecialchars($staffInfo['phoneNumber']); ?></p>
@@ -170,9 +187,23 @@ if ($action === 'logout') {
     
 
     <?php if ($action === 'modifyAccount'): ?>
-        <h3>Modify Account</h3>
         <div class="modify-account-container">
-        <div class="modify-account">
+
+        <div class="modify-picture">
+        <form method="POST" action="" enctype="multipart/form-data">
+        
+        <p><img src="<?php echo $staffInfo['imagePath']; ?>" alt="Staff Image" width="200" height="200"></p>
+        <div class="form-group">
+            <label for="file">Change Image</label>
+            <input type="file" name="image" id="image" required>
+        </div>
+
+            <input type="hidden" name="action" value="uploadImage">
+            <input type="submit" value="Upload Image" style="display: block; margin: 0 auto;">
+        </form>
+         </div>
+
+         <div class="modify-account">
         <form method="POST" action="">
         
         <div class="form-group"> 

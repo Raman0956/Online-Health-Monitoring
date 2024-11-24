@@ -40,7 +40,7 @@ class Staff extends User {
     // Get account information, including working ID
     public function getAccountInfo($conn) {
         try {
-            $sql = "SELECT User.name, User.email, User.phoneNumber, Staff.workingID 
+            $sql = "SELECT User.name, User.email, User.phoneNumber, Staff.workingID, Staff.imagePath
                     FROM User 
                     INNER JOIN Staff ON User.userID = Staff.staffID
                     WHERE User.userID = :userID AND User.userType = 'Staff'";
@@ -83,6 +83,24 @@ class Staff extends User {
             return false;
         }
  }
+
+    // Modify photo
+    public function uploadImage($conn, $imagePath,) {
+        try {
+            // Update photo
+            $sql = "UPDATE staff 
+                SET imagePath = :imagePath 
+                WHERE staffID = :staffID";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue(':imagePath', $imagePath, PDO::PARAM_STR);
+                $stmt->bindValue(':staffID', $this->userID, PDO::PARAM_INT);
+            
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
 
     // Method to modify staff account details
     public function modifyAccount($conn, $name, $email, $phoneNumber) {

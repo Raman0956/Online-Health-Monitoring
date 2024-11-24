@@ -48,11 +48,37 @@ class Admin extends User {
     }
 
     // Create a doctor account
-    public function createDoctor($conn, $name, $email, $phoneNumber, $password, $workingID) {
+    public function createDoctor($conn, $name, $email, $phoneNumber, $password, $workingID, $doctorImage) {
         $userType = "Doctor";
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        try{   
+        try{
+
+            // Check if the workingID already exists
+            $sql = "SELECT COUNT(*) FROM Doctor WHERE workingID = :workingID";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(':workingID', $workingID);
+            $stmt->execute();
+            $workingIDExists = $stmt->fetchColumn();
+
+            if ($workingIDExists > 0) {
+                echo "<script>alert('An account already exists with this Working ID. Please use a different Working ID.');</script>";
+                return; // Stop further execution if workingID exists
+            }
+
+            // If there are validation errors, display them
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['formData'] = [
+                    'name' => $name,
+                    'email' => $email,
+                    'phoneNumber' => $phoneNumber,
+                    'workingID' => $workingID
+                ];
+                header("Location: admin_dashboard.php?action=createDoctorForm");
+                exit();
+            }
+            
             // Insert doctor into User table
             $sql = "INSERT INTO User (name, email, phoneNumber, password, userType) VALUES (:name, :email, :phoneNumber, :password, :userType)";
             $stmt = $conn->prepare($sql);
@@ -66,10 +92,11 @@ class Admin extends User {
             if ($stmt->execute()) {
                 $userID = $conn->lastInsertId();
                 // Insert into Doctor table
-                $sql = "INSERT INTO Doctor (doctorID, workingID) VALUES (:doctorID, :workingID)";
+                $sql = "INSERT INTO Doctor (doctorID, workingID, imagePath) VALUES (:doctorID, :workingID, :doctorImage)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindValue(':doctorID', $userID);
                 $stmt->bindValue(':workingID', $workingID);
+                $stmt->bindValue(':doctorImage', $doctorImage);
                 $stmt->execute();
                 echo "<script>alert('New Doctor account created successfully.');</script>";
             } else {
@@ -81,7 +108,7 @@ class Admin extends User {
     }
 
     // Create a staff account
-    public function createStaff($conn, $name, $email, $phoneNumber, $password, $workingID) {
+    public function createStaff($conn, $name, $email, $phoneNumber, $password, $workingID, $imagePath) {
         $userType = "Staff";
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
@@ -94,14 +121,16 @@ class Admin extends User {
             $stmt->bindValue(':phoneNumber', $phoneNumber);
             $stmt->bindValue(':password', $hashedPassword);
             $stmt->bindValue(':userType', $userType);
+            
 
             if ($stmt->execute()) {
                 $userID = $conn->lastInsertId();
                 // Insert into Staff table
-                $sql = "INSERT INTO Staff (staffID, workingID) VALUES (:staffID, :workingID)";
+                $sql = "INSERT INTO Staff (staffID, workingID,imagePath) VALUES (:staffID, :workingID,:imagePath)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindValue(':staffID', $userID);
                 $stmt->bindValue(':workingID', $workingID);
+                $stmt->bindValue(':imagePath', $imagePath);
                 $stmt->execute();
                 echo "<script>alert('Staff account created successfully.');</script>";
             } else {

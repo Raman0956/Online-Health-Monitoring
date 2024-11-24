@@ -41,7 +41,7 @@ class Doctor extends User {
     // Get account information, including working ID
     public function getAccountInfo($conn) {
         try {
-            $sql = "SELECT User.name, User.email, User.phoneNumber, Doctor.workingID 
+            $sql = "SELECT User.name, User.email, User.phoneNumber, Doctor.workingID, Doctor.imagePath
                     FROM User 
                     INNER JOIN Doctor ON User.userID = Doctor.doctorID 
                     WHERE User.userID = :userID AND User.userType = 'Doctor'";
@@ -66,6 +66,24 @@ class Doctor extends User {
             $stmt->bindValue(':phoneNumber', $phoneNumber, PDO::PARAM_STR);
             $stmt->bindValue(':userID', $this->userID, PDO::PARAM_INT);
     
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+
+    // Modify account details
+    public function uploadImage($conn, $imagePath,) {
+        try {
+            // Update photo
+            $sql = "UPDATE doctor 
+                SET imagePath = :imagePath 
+                WHERE doctorID = :doctorID";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindValue(':imagePath', $imagePath, PDO::PARAM_STR);
+                $stmt->bindValue(':doctorID', $this->userID, PDO::PARAM_INT);
+            
             return $stmt->execute();
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();

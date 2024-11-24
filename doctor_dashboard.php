@@ -31,6 +31,22 @@ if ($action === 'saveChanges' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+if ($action === 'uploadImage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename= $_FILES["image"]["name"];
+    $tempname = $_FILES["image"]["tmp_name"];
+    $folder = "images/".$filename;
+    move_uploaded_file($tempname , $folder);
+    $success = $doctor->uploadImage($conn, $folder);
+
+    if ($success) {
+        echo "<script>alert('Photo updated successfully.'); window.location.href='doctor_dashboard.php?action=viewAccount';</script>";
+        exit();
+    } else {
+        echo "<script>alert('Failed to update Photo.');</script>";
+    }
+}
+
+
 if ($action === 'changePassword' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $currentPassword = $_POST['currentPassword'] ?? '';
     $newPassword = $_POST['newPassword'] ?? '';
@@ -219,14 +235,32 @@ if ($action === 'logout') {
 
     <?php if ($action === 'viewAccount'): ?>
         <h3>View Account</h3>
+        <p><img src="<?php echo $doctorInfo['imagePath']; ?>" alt="Doctor Image" width="200" height="200"></p>
+       
+        
         <p>Name: <?php echo htmlspecialchars($doctorInfo['name']); ?></p>
         <p>Email: <?php echo htmlspecialchars($doctorInfo['email']); ?></p>
         <p>Phone Number: <?php echo htmlspecialchars($doctorInfo['phoneNumber']); ?></p>
         <p>Working ID: <?php echo htmlspecialchars($doctorInfo['workingID']); ?></p>
 
     <?php elseif ($action === 'modifyAccount'): ?>
-        <h3>Modify Account</h3>
+
         <div class="modify-account-container">
+
+        <div class="modify-picture">
+        <form method="POST" action="" enctype="multipart/form-data">
+        
+        <p><img src="<?php echo $doctorInfo['imagePath']; ?>" alt="Doctor Image" width="200" height="200"></p>
+        <div class="form-group">
+            <label for="file">Change Image</label>
+            <input type="file" name="image" id="image" required>
+        </div>
+
+            <input type="hidden" name="action" value="uploadImage">
+            <input type="submit" value="Upload Image" style="display: block; margin: 0 auto;">
+        </form>
+         </div>
+
          <div class="modify-account">
         <form method="POST" action="">
         
@@ -247,6 +281,7 @@ if ($action === 'logout') {
             <input type="submit" value="Save Changes" style="display: block; margin: 0 auto;">
         </form>
     </div>
+
     <div class="change-password">
         <h3>Change Password</h3>
         <form method="POST" action="" >
@@ -268,6 +303,7 @@ if ($action === 'logout') {
             <input type="submit" value="Change Password" style="display: block; margin: 0 auto;">
         </form>
     </div>
+
 
         <?php elseif ($action === 'prescribeExam'): ?>
         <h3>Search Patient</h3>
